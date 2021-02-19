@@ -1,0 +1,239 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "Tokyo Api Backend",
+      "description": "All Api docs required for Tokyo project.",
+      "license": {
+        "name": "Platinumcode India",
+        "url": "https://platinumcode.com.my/"
+      }
+    },
+    "host": "localhost:4000",
+    "basePath": "/",    
+    "schemes": [
+      "http"
+    ],
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "paths": {
+      "/api/category/ViewCategory": {
+        "post": {
+          "tags": [
+            "Category"
+          ],
+          "description": "View Category",
+          "parameters": [
+            {
+              "name": "api_token",
+              "in": "body",
+              "description": "Api token provided to you"           
+            }
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "1": {
+              "description": "Sucess",
+              "schema": {
+                "$ref": "#/definitions/Sucess"
+              }
+              
+            }, "2": {
+                "description": "failure",
+                "schema": {
+                    "$ref": "#/definitions/Failed"
+                }
+                
+              },
+            "4": {
+                "description": "failure",
+                "schema": {
+                    "$ref": "#/definitions/Apifailure" 
+                }
+                
+              }
+          }
+        } 
+      },
+      "/api/category/AddCategory": {
+        "post": {
+          "tags": [
+            "Category"
+          ],
+          "description": "View Category",
+          "parameters": [
+            {
+              "name": "api_token",
+              "in": "body",
+              "description": "Api token provided to you"           
+            },
+            {
+                "name": "categoryname",
+                "in": "body",
+                "description": "Category name"           
+              },
+              {
+                "name": "imagename",
+                "in": "body",
+                "description": "Image Name"           
+              }
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "1": {
+              "description": "Sucess",
+              "schema": {
+                "$ref": "#/definitions/Sucess"
+              }
+              
+            }, "2": {
+                "description": "failure",
+                "schema": {
+                    "$ref": "#/definitions/Failed"
+                }
+                
+              },
+            "4": {
+                "description": "failure",
+                "schema": {
+                    "$ref": "#/definitions/Apifailure" 
+                }
+                
+              }
+          }
+        } 
+      }
+    },
+    "definitions": {
+        "Sucess": {
+            "required": [
+            "id",
+            "name",
+            "id",
+            "categoryname",
+            "imagename",
+            "status",
+            "stock",
+            "tax",
+            "barsec",
+            "catOrderBy",
+            "created_at",
+            "updated_at"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "statuscode": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "format": "int32",
+                                "example": "1"
+                            },
+                            "categoryname": {
+                                "type": "string",
+                                "example": "Pc test"
+                            },
+                            "imagename": {
+                                "type": "string",
+                                "format": "nullable"
+                            },
+                            "status": {
+                                "type": "integer",
+                                "format": "int32",
+                                "example": "1"
+                            },
+                            "stock": {
+                                "type": "integer",
+                                "format": "int32",
+                                "example": "0"
+                            },
+                            "tax": {
+                                "type": "integer",
+                                "format": "int32",
+                                "example": "0"
+                            },
+                            "barsec": {
+                                "type": "integer",
+                                "format": "int32",
+                                "example": "0"
+                            },
+                            "catOrderBy": {
+                                "type": "integer",
+                                "format": "int32",
+                                "example": "0"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "nullable"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "example": "2021-02-04T15:03:11.000Z"
+                            }
+                        }
+                    }
+                }
+            }
+          },
+          "Failed": {
+            "required": [
+            "status",
+            "statuscode",
+            "msg"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example":"failure"
+                },
+                "statuscode": {
+                    "type": "string",
+                    "example":"2"
+                },
+                "msg": {
+                    "type": "string",
+                    "example":"No data available."
+                }
+            }
+          },
+          "Apifailure": {
+            "required": [
+            "status",
+            "statuscode",
+            "msg"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                     "example":"failure"
+                },
+                "statuscode": {
+                    "type": "string",
+                    "example":"4"
+                },
+                "msg": {
+                    "type": "string",
+                    "example":"Incorrect Api token."
+                }
+            }
+          }
+    }
+  }
