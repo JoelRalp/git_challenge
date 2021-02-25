@@ -1,6 +1,6 @@
 const fs = require("fs");
 const { Console } = require("console");
-const { VIEW_EMPLOYEE, ADD_EMPLOYEE, GET_EMPLOYEE_ID, CHANGE_EMPLOYEE_STATUS,EDIT_EMPLOYEE,DELETE_EMPLOYEE } = require("../Employee/employee.service");
+const { VIEW_EMPLOYEE, ADD_EMPLOYEE, GET_EMPLOYEE_ID, CHANGE_EMPLOYEE_STATUS,EDIT_EMPLOYEE,DELETE_EMPLOYEE,VIEW_EMPLOYEE_ROLE,ADD_EMPLOYEE_ROLE,EDIT_EMPLOYEE_ROLE,GET_EMPLOYEE_ROLE_ID,DELETE_EMPLOYEE_ROLE,CHANGE_EMPLOYEE_ROLE_STATUS } = require("../Employee/employee.service");
 const { makeid, refresh } = require("../Mqtt/server");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
 
@@ -96,11 +96,100 @@ module.exports = {
       else { resfailure.msg = results; return res.json(resfailure); }
     });
   },
-  deleteOutlet: (req, res) => {
+  deleteEmployee: (req, res) => {
     let body = req.body;
     if (!req.body.api_token) { return res.status(200).json(apierrmsg) }
     else if (!req.body.deleteid) { return res.status(200).json(reqallfeild) }
     DELETE_EMPLOYEE(body, (err, results) => {
+      if (err) {return res.json(fatal_error);}
+      else if (results[0].err_id == '-2') {insfailure.msg = "Invalid Id";return res.json(insfailure);}
+      else if (results[0].err_id == '-1') {return res.json(apierrmsg);}
+      else if (results[0].err_id == '1') {refresh();sucess.data="Employee deleted sucessfully";return res.json(sucess);
+      }
+    });
+  },
+  viewEmployeeRole: (req, res) => {
+    const body = req.body;
+    console.log(req.body);
+    if (!req.body.api_token) { reqallfeild }
+    VIEW_EMPLOYEE_ROLE(body, (err, results) => {
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
+      else { sucess.data = results; return res.json(sucess); }
+    });
+  },
+
+  addEmployeeRole: (req, res) => {
+    const body = req.body;
+    if (!req.body.api_token) { return res.json(apierrmsg) }
+    else if (!req.body.roleName) { return res.status(200).json(reqallfeild) }
+    else if (!req.body.status) { return res.status(200).json(reqallfeild) }
+   
+    ADD_EMPLOYEE_ROLE(body, (err, results) => {
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else if (results[0].err_id == 1) {
+      
+        refresh();
+        inssucess.msg = "Employee added sucessfully"
+        return res.json(inssucess);
+      }
+      else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+      else if (results[0].err_id == -2) { insfailure.msg = "Employee name already inserted"; return res.json(insfailure); }
+      else { resfailure.msg = results; return res.json(resfailure); }
+    });
+  },
+
+  getEmployeeRoleById: (req, res) => {
+    let body = req.body;
+    if (!req.body.api_token) { return res.status(200).json(apierrmsg) }
+    else if (!req.body.editid) { return res.status(200).json(reqallfeild) }
+    GET_EMPLOYEE_ROLE_ID(body, (err, results) => {
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
+      else if (results[0].err_id == "-2") { return res.json(nodatafound); }
+      else { sucess.data = results; return res.json(sucess); }
+    });
+  },
+
+  changeEmployeeRoleStatus: (req, res) => {
+    let body = req.body;
+    if (!req.body.api_token) { return res.status(200).json(apierrmsg) }
+    else if (!req.body.employeeid) { return res.status(200).json(reqallfeild) }
+    else if (!req.body.status) { return res.status(200).json(reqallfeild) }
+    CHANGE_EMPLOYEE_ROLE_STATUS(body, (err, results) => {
+      if (err) { 
+        fatal_error.data = err;
+        return res.json(fatal_error);
+       }
+      else if (results[0].err_id == '-2') { nodatafound.data = "Invalid Employee Id"; return res.json(nodatafound); }
+      else if (results[0].err_id == '-1') { return res.json(apierrmsg); }
+      else if (results[0].err_id == '1') { sucess.data = "Employee status changed successfully"; return res.json(sucess); }
+    });
+  },
+  editEmployeeRole: (req, res) => {
+    const body = req.body;
+    if (!req.body.api_token) { return res.json(apierrmsg) }
+    else if (!req.body.roleName) { return res.status(200).json(reqallfeild) }
+    else if (!req.body.status) { return res.status(200).json(reqallfeild) }
+    else if (!req.body.editid) { return res.status(200).json(reqallfeild) }
+    EDIT_EMPLOYEE_ROLE(body, (err, results) => {
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else if (results[0].err_id == 1) {
+      
+        refresh();
+        inssucess.msg = "Employee updated sucessfully"
+        return res.json(inssucess);
+      }
+      else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+      else if (results[0].err_id == -2) { insfailure.msg = "Employee name already inserted"; return res.json(insfailure); }
+      else { resfailure.msg = results; return res.json(resfailure); }
+    });
+  },
+  deleteEmployeeRole: (req, res) => {
+    let body = req.body;
+    if (!req.body.api_token) { return res.status(200).json(apierrmsg) }
+    else if (!req.body.deleteid) { return res.status(200).json(reqallfeild) }
+    DELETE_EMPLOYEE_ROLE(body, (err, results) => {
       if (err) {return res.json(fatal_error);}
       else if (results[0].err_id == '-2') {insfailure.msg = "Invalid Id";return res.json(insfailure);}
       else if (results[0].err_id == '-1') {return res.json(apierrmsg);}

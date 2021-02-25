@@ -114,5 +114,117 @@ module.exports = {
       }
     );
   },
+  VIEW_EMPLOYEE_ROLE: (body, callBack) => {
+    let Api_token = body.api_token;
+    
+    
+     pool.query(
+       "CALL View_Employee_Role(?,@a);",
+       [Api_token],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   ADD_EMPLOYEE_ROLE: (body,callBack) => {
+      pool.query(
+        "CALL Add_Emp_Role(?,?,?,@a);",
+        [body.api_token,body.roleName,body.status],
+        (error, results, fields) => {
+           
+          if (error) {    
+            callBack(error);
+          }
+          else{
+            return callBack(null, results[0]);
+          }
+        }
+      );
+    },
+    GET_EMPLOYEE_ROLE_ID: (body, callBack) => {
+     let Api_token = body.api_token;
+     let editid = body.editid;
+     editid = parseInt(editid);
+     var query = "CALL Get_Emplyee_Role__Id(?,?,@p);" ;
+   
+      pool.query(  
+       query ,
+       [editid,Api_token],  
+        (error, results, fields) => {
+         
+          if (error) {    
+            callBack(error);
+          }
+          else{
+           console.log(results);
+            return callBack(null, results[0]);
+          }
+        }
+      );
+    },
+    CHANGE_EMPLOYEE_ROLE_STATUS: (body, callBack) => {
+     let Api_token = body.api_token;
+     let EMPLOYEE_ROLEid = body.employeeid;
+     let statusid = body.status;
+     statusid = parseInt(statusid);
+     var query = "CALL Change_Emplyee_Role_Status(?,?,?,@p);" ;
+   
+      pool.query(  
+       query ,
+       [Api_token,EMPLOYEE_ROLEid,statusid],  
+        (error, results, fields) => { 
+         
+          if (error) {    
+            callBack(error);
+          }
+          else{
+           console.log(results);
+            return callBack(null, results[0]);
+          }
+        }
+      );
+    },
+    EDIT_EMPLOYEE_ROLE: (body,callBack) => {
+    
+      pool.query(  
+        "CALL Edit_Emp_Role(?,?,?,?,@a);",
+        [body.api_token,body.roleName,body.status,body.editid],
+        (error, results, fields) => {
+         
+          if (error) {    
+            callBack(error);
+          }
+          else{
+           console.log(results);
+            return callBack(null, results[0]);
+          }
+        }
+      );
+    },
+    DELETE_EMPLOYEE_ROLE: (body, callBack) => {
+     let Api_token = body.api_token;
+     let id = body.deleteid;
+    
+     var query = "CALL Delete_Emp_Role(?,?,@p);";
+     pool.query(
+       query,
+       [Api_token, id],
+       (error, results, fields) => {
+         if (error) {
+           callBack(error);
+         }
+         else {
+           console.log(results);
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
  
 }
