@@ -62,6 +62,8 @@ const Points = require("./Api/Points/points.router")
 const PrivacyRouter = require("./Api/PrivacyPolicy/privacy.router")
 const TermsRouter = require("./Api/Terms/privacy.router")
 const ReservationRouter  = require("./Api/Reservation/reservation.router")
+const ReportRouter  = require("./Api/Report/Report.router")
+const BetaRouter  = require("./Api/BetaProduct/beta.router")
 
 
  
@@ -80,7 +82,8 @@ const ReservationRouter  = require("./Api/Reservation/reservation.router")
  app.use("/api/privacy",PrivacyRouter)
  app.use("/api/terms",TermsRouter)
  app.use("/api/reservation",ReservationRouter)
-
+ app.use("/api/report",ReportRouter)
+ app.use("/api/beta",BetaRouter)
  
 
 // runing on port
