@@ -58,13 +58,12 @@ const VariantRouter = require("./Api/Variant/variant.router")
 const EmployeeRouter = require("./Api/Employee/employee.router")
 const WebOrderProduct = require("./Api/WebOrderProduct/weborder.router")
 const WebOrderTable = require("./Api/Web_Order_Table/webordertable.router")
-const Points = require("./Api/Points/points.router")
-const PrivacyRouter = require("./Api/PrivacyPolicy/privacy.router")
-const TermsRouter = require("./Api/Terms/privacy.router")
 const ReservationRouter  = require("./Api/Reservation/reservation.router")
 const ReportRouter  = require("./Api/Report/Report.router")
 const BetaRouter  = require("./Api/BetaProduct/beta.router")
-
+const SupportRouter  = require("./Api/Support/support.router")
+const Newsletter  = require("./Api/Newsletter/newsletter.router")
+const Settings  = require("./Api/Settings/settings.router")
 
  
  app.use("/api/adminlogin",AdminLoginRouter);
@@ -78,12 +77,12 @@ const BetaRouter  = require("./Api/BetaProduct/beta.router")
  app.use("/api/employee",EmployeeRouter)
  app.use("/api/weborderproduct",WebOrderProduct)
  app.use("/api/webordertable",WebOrderTable)
- app.use("/api/points",Points)
- app.use("/api/privacy",PrivacyRouter)
- app.use("/api/terms",TermsRouter)
  app.use("/api/reservation",ReservationRouter)
  app.use("/api/report",ReportRouter)
  app.use("/api/beta",BetaRouter)
+ app.use("/api/support",SupportRouter)
+ app.use("/api/newsletter",Newsletter)
+ app.use("/api/settings",Settings)
  
 
 // runing on port

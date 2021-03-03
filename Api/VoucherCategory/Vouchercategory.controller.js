@@ -270,8 +270,6 @@ module.exports = {
           data: "category deleted successfully"
         });
       }
-
-
     });
   },
 };
