@@ -59,30 +59,21 @@ module.exports = {
     });
   },
   editPos: (req, res) => {
+    console.log("in");
     const body = req.body;
-    if (!req.body.api_token) { return res.json(apierrmsg) }
-    else if (!req.body.companyname) { return res.status(200).json(reqallfeild) }
-    else if (!(req.files && req.files.logo)) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.phone) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.currency) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.keyboard) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.receiptheader) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.receiptfooter) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.theme) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.discount) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.tax) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.service_tax) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.timezone) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.language) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.stripe) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.stripe_secret_key) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.stripe_publishable_key) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.decimals) { return res.status(200).json(reqallfeild) }
-    var imgname = makeid(5);
-    EDIT_POS(body, imgname, (err, results) => {
+    if (!req.body.api_token) { return res.json(apierrmsg) }//
+    else if (!req.body.companyname) { return res.status(200).json(reqallfeild ) }//
+    else if (!req.body.phone) { return res.status(200).json(reqallfeild )  }//
+    else if (!req.body.currency) { return res.status(200).json(reqallfeild )  }//
+    else if (!req.body.receiptheader) { return res.status(200).json(reqallfeild ) }//
+    else if (!req.body.receiptfooter) { return res.status(200).json(reqallfeild ) }//
+    else if (!req.body.default_tax) { return res.status(200).json(reqallfeild ) }//
+    else if (!req.body.service_tax) { return res.status(200).json(reqallfeild ) }//
+    else if (!req.body.discount) { return res.status(200).json(reqallfeild ) }//
+    else if (!req.body.decimals) { return res.status(200).json(reqallfeild ) }//
+    EDIT_POS(body, (err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       else if (results[0].err_id == 1) {
-        fs.writeFileSync("Api\\Images\\Logo\\" + imgname + ".png", req.files.image.data);
         refresh();
         inssucess.msg = "Category updated sucessfully"
         return res.json(inssucess);
@@ -150,7 +141,7 @@ module.exports = {
          else if (!req.body.no_rm) { return res.status(200).json(reqallfeild) }
          else if (!req.body.rate_others) { return res.status(200).json(reqallfeild) }
          else if (!req.body.rate_ewallet) { return res.status(200).json(reqallfeild) }
-         else if (!req.body.points) { return res.status(200).json(reqallfeild) }
+         else if (!req.body.point) { return res.status(200).json(reqallfeild) }
     ADD_POINTS(body, (err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       else if (results[0].err_id == 1) {    
@@ -183,7 +174,7 @@ module.exports = {
          else if (!req.body.rate_others) { return res.status(200).json(reqallfeild) }
          else if (!req.body.rate_ewallet) { return res.status(200).json(reqallfeild) }
          else if (!req.body.points) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.editid) { return res.status(200).json(reqallfeild) }
+         else if (!req.body.editid) { return res.status(200).json(reqallfeild) }
     EDIT_POINTS(body, (err, results) => {
       
       if (err) { fatal_error.data = err; return res.json(fatal_error); }

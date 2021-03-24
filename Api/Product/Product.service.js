@@ -27,7 +27,7 @@ module.exports = {
   
      pool.query(  
       query ,
-      [bodynew.body.api_token,bodynew.body.product_name,bodynew.body.product_sku,bodynew.body.product_category,bodynew.body.product_cost,`Api\\CategortImages\\` + imgnew],  
+      [bodynew.body.api_token,bodynew.body.product_name,bodynew.body.product_sku,bodynew.body.product_category,bodynew.body.product_cost,imgnew],  
        (error, results, fields) => {
         
          if (error) {    
@@ -131,5 +131,81 @@ module.exports = {
        }
      );
    },
-  
+   VIEW_PRODUCT_IMAGE: (body, callBack) => {
+    let Api_token = body.api_token;
+    let id = body.productid;
+   
+     pool.query(
+       "CALL View_Product_Image(?,?,@a);",
+       [id,Api_token],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+     },
+     ADD_PRODUCT_IMAGE: (body,img,callBack) => {
+      let Api_token = body.api_token;
+      let id = body.id;
+     console.log(Api_token);
+       pool.query(
+         "CALL Add_Product_Image(?,?,?,@a);",
+         [Api_token,img,id],
+         (error, results, fields) => {
+            
+           if (error) {    
+             callBack(error);
+           }
+           else{
+             return callBack(null, results[0]);
+           }
+         }
+       );
+       },
+       EDIT_PRODUCT_IMAGE: (body,img,callBack) => {
+        let Api_token = body.api_token;
+        let id = body.id;
+      
+       console.log(Api_token);
+         pool.query(
+           "CALL Edit_Product_Image(?,?,?,@a);",
+           [Api_token,img,id],
+           (error, results, fields) => {
+              
+             if (error) {    
+               callBack(error);
+             }
+             else{
+               return callBack(null, results[0]);
+             }
+           }
+         );
+         },
+         DELETE_PRODUCT_IMAGE: (body, callBack) => {
+          let Api_token = body.api_token;
+          let productid = body.id;
+         
+          productid = parseInt(productid);
+          var query = "CALL Delete_Product_Image(?,?,@p);" ;
+        
+           pool.query(  
+            query ,
+            [Api_token,productid],  
+             (error, results, fields) => {
+              
+               if (error) {    
+                 callBack(error);
+               }
+               else{
+                console.log(results);
+                 return callBack(null, results[0]);
+               }
+             }
+           );
+         },      
 }

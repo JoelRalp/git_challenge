@@ -44,7 +44,7 @@ module.exports = {
 
     pool.query(
       "CALL Edit_Variant(?,?,?,@a);",
-      [Api_token,body.name,body.id],
+      [Api_token,body.name,body.variationid],
       (error, results, fields) => {
 
         if (error) {
@@ -80,6 +80,7 @@ module.exports = {
   CHANGE_VARIANT_STATUS: (body, callBack) => {
     let Api_token = body.api_token;
     let id = body.variationid;
+    id = parseInt(body.variationid);
     let statusid = body.status;
     statusid = parseInt(statusid);
     var query = "CALL Change_Variant_Status(?,?,?,@p);" ;

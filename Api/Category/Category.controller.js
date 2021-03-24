@@ -4,10 +4,10 @@ const{ VIEW_CATEGORY } = require("../Category/Category.service");
 const{ ADD_CATEGORY } = require("../Category/Category.service");
 const{ GET_CATEGORY_BY_ID } = require("../Category/Category.service");
 const{ EDIT_CATEGORY } = require("../Category/Category.service");
-const{CHANGE_CATEGORY_STATUS } = require("../Category/Category.service");
+const{CHANGE_CATEGORY_STATUS,DELETE_CATEGORY } = require("../Category/Category.service");
 const fs = require("fs");
 const { Console } = require("console");
-
+var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
 
 module.exports = {
  
@@ -47,12 +47,12 @@ module.exports = {
     });
   }, 
   Add_Category: (req,res) => { 
-
+    if(!req.body.api_token){return res.status(200).json({apierrmsg})}
     if(!req.body.categoryname){return res.status(200).json({status:"failure",statuscode:"3",msg:"Required All Field"})}
-    else if(!req.files.imagename){return res.status(200).json({status:"failure",statuscode:"3",msg:"Required All Field"})}
+    // else if(!req.files.imagename){return res.status(200).json({status:"failure",statuscode:"3",msg:"Required All Field"})}
 var bodyex = {
 Category_name : req.body.categoryname,
-Img_name : req.files.imagename
+api_token:req.body.api_token
  } 
     ADD_CATEGORY(bodyex, (err, results) => {
       if (err) {
@@ -65,8 +65,7 @@ Img_name : req.files.imagename
       }
      
      else if(results[0].err_id == 1){
-    var imgname=   makeid(5);
-      fs.writeFileSync("Api\\Images\\CategoryImages" + imgname +".png", req.files.imagename.data);
+    
           return res.json({
               status: "success",
               statuscode: "1",
@@ -183,12 +182,12 @@ Img_name : req.files.imagename
     Edit_Category: (req,res) => { 
 
       if(!req.body.categoryname){return res.status(200).json({status:"failure",statuscode:"3",msg:"Required All Field"})}
-      else if(!req.files.imagename){return res.status(200).json({status:"failure",statuscode:"3",msg:"Required All Field"})}
+      //else if(!req.files.imagename){return res.status(200).json({status:"failure",statuscode:"3",msg:"Required All Field"})}
       else if(!req.body.id){return res.status(200).json({status:"failure",statuscode:"3",msg:"Required All Field"})}
-      else if(!req.body.api_token){return res.status(200).json({status:"failure",statuscode:"3",msg:"Required All Field"})}
+      else if(!req.body.api_token){return res.status(200).json({apierrmsg})}
   var bodyex = {
   Category_name : req.body.categoryname,
-  Img_name : req.files.imagename,
+  //Img_name : req.files.imagename,
   id :req.body.id,
   api_token1:req.body.api_token
    } 
@@ -204,8 +203,7 @@ Img_name : req.files.imagename
         }
        
        else if(results[0].err_id == 1){
-      var imgname=   makeid(5);
-        fs.writeFileSync("Api\\Images\\CategoryImages" + imgname +".png", req.files.imagename.data);
+      
             return res.json({
                 status: "success",
                 statuscode: "1",
@@ -240,7 +238,20 @@ Img_name : req.files.imagename
       
       });
     },
-
+    deleteCategory: (req, res) => {
+      let body = req.body;
+      if (!req.body.api_token) { return res.status(200).json(apierrmsg); }
+      else if (!req.body.id) { return res.status(200).json(reqallfeild); }
+      DELETE_CATEGORY(body,(err, results) => {
+        fatal_error.data = err;
+        if (err) { return res.json(fatal_error); }
+        else if (results[0].err_id == '-2') { insfailure.msg = "Invalid Id"; return res.json(insfailure); }
+        else if (results[0].err_id == '-1') { return res.json(apierrmsg); }
+        else if (results[0].err_id == '1') {
+           sucess.data = "Category deleted sucessfully"; return res.json(sucess);
+        }
+      });
+    },
 };
 function makeid(length) {
   var result           = '';

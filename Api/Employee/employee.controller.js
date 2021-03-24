@@ -3,7 +3,7 @@ const { Console } = require("console");
 const { VIEW_EMPLOYEE, ADD_EMPLOYEE, GET_EMPLOYEE_ID, CHANGE_EMPLOYEE_STATUS,EDIT_EMPLOYEE,DELETE_EMPLOYEE,VIEW_EMPLOYEE_ROLE,ADD_EMPLOYEE_ROLE,EDIT_EMPLOYEE_ROLE,GET_EMPLOYEE_ROLE_ID,DELETE_EMPLOYEE_ROLE,CHANGE_EMPLOYEE_ROLE_STATUS } = require("../Employee/employee.service");
 const { makeid, refresh } = require("../Mqtt/server");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
-
+const s3w = require("../Aws.s3");
 
 module.exports = {
   viewEmployee: (req, res) => {
@@ -30,18 +30,25 @@ module.exports = {
     else if (!req.body.nationality) { return res.status(200).json(reqallfeild) }
     else if (!req.files.employeeImage) { return res.status(200).json(reqallfeild) }
     var imgname = makeid(5);
-    ADD_EMPLOYEE(body, imgname, (err, results) => {
-      if (err) { fatal_error.data = err; return res.json(fatal_error); }
-      else if (results[0].err_id == 1) {
-        fs.writeFileSync("Api\\Images\\EmployeeImages\\" + imgname + ".png", req.files.employeeImage.data);
-        refresh();
-        inssucess.msg = "Employee added sucessfully"
-        return res.json(inssucess);
+    s3w.uploadFile (req.files.employeeImage.data, imgname, (results, err) => {
+      if (results) {
+        ADD_EMPLOYEE(body, results, (err, results) => {
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          else if (results[0].err_id == 1) {
+            refresh();
+            inssucess.msg = "Employee added sucessfully"
+            return res.json(inssucess);
+          }
+          else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+          else if (results[0].err_id == -2) { insfailure.msg = "Employee name already inserted"; return res.json(insfailure); }
+          else { resfailure.msg = results; return res.json(resfailure); }
+        });
       }
-      else if (results[0].err_id == -1) { return res.json(apierrmsg); }
-      else if (results[0].err_id == -2) { insfailure.msg = "Employee name already inserted"; return res.json(insfailure); }
-      else { resfailure.msg = results; return res.json(resfailure); }
+      else {
+        throw err;
+      }
     });
+   
   },
 
   getEmployeeById: (req, res) => {
@@ -97,6 +104,7 @@ module.exports = {
     });
   },
   deleteEmployee: (req, res) => {
+    console.log(req);
     let body = req.body;
     if (!req.body.api_token) { return res.status(200).json(apierrmsg) }
     else if (!req.body.deleteid) { return res.status(200).json(reqallfeild) }

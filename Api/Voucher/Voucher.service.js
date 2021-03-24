@@ -7,8 +7,8 @@ module.exports = {
    
   
     pool.query(
-      "CALL View_Data(?,?,@a);",
-      ["tb_voucher",Api_token],
+      "CALL View_Voucher(?,@a);",
+      [Api_token],
       (error, results, fields) => {
          
         if (error) {    
@@ -109,11 +109,52 @@ module.exports = {
       else if(! vStatusnew ){vStatusnew = null;}
 
 
-      var query = "CALL Add_Voucher(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@p);" ;
+      var query = "CALL Add_Voucher(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@p);" ;
     
        pool.query(  
-        query ,
-        [cateIDnew,discount_typenew,voucher_codenew,titlenew,descriptionnew,photonew,addDatenew,color_codenew,typesnew,types_valuenew,apply_tonew,apply_to_valuenew,countrynew,country_valuenew,ship_ratenew,ship_rate_valuenew,cust_buynew,cust_buy_value1new,cust_buy_value2new,cust_getnew,cust_get_value1new,cust_get_value2new,at_discountnew,at_discount_valuenew,set_min_ordernew,set_min_order_valuenew,min_reqnew,min_req_valuenew,cus_elgnew,cus_elg_valuenew,usage_limitnew,usage_limit_valuenew,total_vou_countnew,limt_pernew,limit_per_valuenew,start_datenew,start_timenew,end_datenew,end_timenew,expired_datenew,expired_timenew,vStatusnew,qrcodenew,barcodenew],  
+        query ,        
+        [body.api_token,
+           cateIDnew,
+          discount_typenew,
+          voucher_codenew,
+          titlenew,
+          descriptionnew,
+          photonew,
+          addDatenew,
+          color_codenew,
+          typesnew,
+          types_valuenew,
+          apply_tonew,
+          apply_to_valuenew,
+          countrynew,
+          country_valuenew,
+          ship_ratenew,
+          ship_rate_valuenew,
+          cust_buynew,
+          cust_buy_value1new,
+          cust_buy_value2new,
+          cust_getnew,
+          cust_get_value1new,
+          cust_get_value2new,
+          at_discountnew,
+          at_discount_valuenew,
+          set_min_ordernew,
+          set_min_order_valuenew,
+          min_reqnew,
+          min_req_valuenew,
+          cus_elgnew,
+          cus_elg_valuenew,
+          usage_limitnew,
+          usage_limit_valuenew,
+          total_vou_countnew,
+          limt_pernew,
+          limit_per_valuenew,
+          start_datenew,start_timenew,
+          end_datenew,end_timenew,
+          expired_datenew,expired_timenew,
+          vStatusnew,
+          qrcodenew,
+          barcodenew],  
          (error, results, fields) => {
           
            if (error) {    
@@ -151,7 +192,7 @@ module.exports = {
       let vouid = body.voucherid;
       let statusid = body.status;
      let statusnewid = parseInt(statusid);
-      var query = "CALL Voucher_Change_Status(?,?,?,@p);" ;
+      var query = "CALL Change_Voucher_Status(?,?,?,@p);" ;
     
        pool.query(  
         query ,

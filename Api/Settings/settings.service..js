@@ -86,27 +86,20 @@ module.exports = {
         }
       );
     },
-    EDIT_POS: (body,img,callBack) => {
+    EDIT_POS: (body,callBack) => {
       pool.query(
-        "CALL Edit_POs(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@a);",
+        "CALL Edit_POs(?,?,?,?,?,?,?,?,?,?,?,@a);",
         [
          body.api_token,
          body.companyname,
-         img,
          body.phone,
-         body.currency, 
-         body.keyboard, 
          body.receiptheader, 
          body.receiptfooter,
-         body.theme,  
+         body.currency, 
          body.discount,
-         body.tax,
-         body.service_tax,  
-         body.timezone,
-         body.language,  
-         body.stripe,
-         body.stripe_secret_key, 
-         body.stripe_publishable_key,  
+         body.default_tax,
+         body.service_tax,
+         body.timezone,  
          body.decimals,
         ],
         (error, results, fields) => {

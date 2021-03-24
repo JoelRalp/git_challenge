@@ -3,7 +3,7 @@ const { Console } = require("console");
 const { VIEW_NEWSLETTER,ADD_NEWSLETTER,GET_NEWSLETTER_ID,DELETE_NEWSLETTER,CHANGE_NEWSLETTER_STATUS,EDIT_NEWSLETTER} = require("./newsletter.service.");
 const { makeid, refresh } = require("../Mqtt/server");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
-
+const s3w = require("../Aws.s3");
 
 module.exports = {
   viewNewsLetter: (req, res) => {
@@ -14,33 +14,49 @@ module.exports = {
       else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
       else { sucess.data = results; return res.json(sucess); }
     });
-  },
-  addNewsLetter: (req, res) => {
+  },//function getCartCode(res)  {
+   addNewsLetter: (req, res) => {
     const body = req.body;
+    let images = req.files.pImage;
+    let key = [];
+    let i = 0;
     if (!req.body.api_token) { return res.json(apierrmsg) }
     else if (!req.body.title) { return res.status(200).json(reqallfeild) }
     else if (!req.body.sub_title) { return res.status(200).json(reqallfeild) }
     else if (!req.body.description) { return res.status(200).json(reqallfeild) }
     else if (!req.body.pStatus) { return res.status(200).json(reqallfeild) } 
- 
-    ADD_NEWSLETTER(body,(err, results) => {
-      if (err) { fatal_error.data = err; return res.json(fatal_error); }
-      else if (results[0].err_id == 1) {
-        refresh();
-        inssucess.msg = "News letter product added sucessfully"
-        return res.json(inssucess);
-      }
-      else if (results[0].err_id == -1) { return res.json(apierrmsg); }
-      else if (results[0].err_id == -2) { insfailure.msg = "News letter already inserted"; return res.json(insfailure); }
-      else { resfailure.msg = results; return res.json(resfailure); }
+    else if (!req.files && req.files.pImage) { return res.status(200).json(reqallfeild) } 
+    images.forEach(element => {
+      var imgname = makeid(5);
+     s3w.uploadFile (element.data, imgname, (results, err) => {
+        if (results) {
+         
+            ADD_NEWSLETTER(body,path,(err, results) => {
+             
+              if (err) { fatal_error.data = err; return res.json(fatal_error); }
+              else if(results.err_id == "-2"){insfailure.msg = "Newsletter title already inserted"; return res.json(insfailure);}
+            else if(results)
+            {
+              key.push(results)
+
+            }
+           });
+          
+        }
+        else {
+          throw err;
+        }
+      });
+     console.log(key);
     });
+  
   },
   getNewsLettertId: (req, res) => {
     let body = req.body;
     if (!req.body.api_token) { return res.status(200).json(apierrmsg) }
     else if (!req.body.editid) { return res.status(200).json(reqallfeild) }
     GET_NEWSLETTER_ID(body, (err, results) => {
-      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      if (err){ fatal_error.data = err; return res.json(fatal_error); }
       else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
       else if (results[0].err_id == "-2") { return res.json(nodatafound); }
       else { sucess.data = results[0]; return res.json(sucess); }

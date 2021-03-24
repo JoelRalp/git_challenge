@@ -18,6 +18,22 @@ module.exports = {
       }
     );
   },
+  VIEW_USER: (body, callBack) => {
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL View_Member(?,@a);",
+       [Api_token],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
   ADD_WEBORDER_PRODUCT: (body,img,callBack) => {
      pool.query(
        "CALL Add_WebOrder_Product(?,?,?,?,?,?,?,?,?,?,@p);",
@@ -84,7 +100,7 @@ module.exports = {
   },
   CHANGE_WEBORDER_PRODUCT_STATUS: (body, callBack) => {
     let Api_token = body.api_token;
-    let id = body.variationid;
+    let id = body.productid;
     let statusid = body.status;
     statusid = parseInt(statusid);
     var query = "CALL Change_WebORder_Product_Status(?,?,?,@p);" ;

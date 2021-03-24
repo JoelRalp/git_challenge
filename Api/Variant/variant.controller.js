@@ -114,13 +114,12 @@ module.exports = {
       });
     }
     else if (!req.body.name) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
-    else if (!req.body.id) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
+    else if (!req.body.variationid) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
 
     EDIT_VARIANT(body, (err, results) => {
 
       if (err) {
-
-        return res.json({
+        json({
           status: "fatal_error",
           statuscode: "500",
           data: err

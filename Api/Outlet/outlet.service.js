@@ -20,7 +20,7 @@ module.exports = {
       }
     );
   },
-  ADD_OUTLET: (body,imgnew, callBack) => {
+  ADD_OUTLET: (body,imgnew,callBack) => {
     var query =  "CALL Add_Outlet(?,?,?,?,?,?,?,?,?,@a);";
      pool.query(  
       query ,
@@ -103,7 +103,7 @@ module.exports = {
      let Api_token = body.api_token;
      let Outid = body.id;
      Outid = parseInt(Outid);
-     var query = "CALL Delete_Employe(?,?,@p);";
+     var query = "CALL Delete_Outlet(?,?,@p);";
      pool.query(
        query,
        [Api_token, Outid],

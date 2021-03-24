@@ -22,16 +22,13 @@ module.exports = {
   },
   ADD_CATEGORY: (body, callBack) => {
    
-    let catname = body.Category_name;
-    let imgname = body.Img_name.name;
-    var datindd = new Date().toISOString().split('T')[0];
-   
-    imagename= "cat" + "_" + new Date();
-    var query = "CALL Add_Category(?, ?,?,?,?,?,?,?,?,@p);" ;
+    let apitoken = body.api_token;
+    let cat = body.Category_name;
+    var query = "CALL Add_Category(?,?,@p);" ;
   
      pool.query(  
       query ,
-      [catname,imgname,0,0,0,0,0,datindd,datindd],  
+      [apitoken,cat],  
        (error, results, fields) => {
         
          if (error) {    
@@ -68,15 +65,15 @@ module.exports = {
    EDIT_CATEGORY: (body, callBack) => {
    
     let catname = body.Category_name;
-    let imgname = body.Img_name.name;
+    //let imgname = body.Img_name.name;
     let api = body.api_token1;
     let idd = body.id;
    
     imagename= "cat" + "_" + new Date();
-    var query = "CALL Edit_Category(?,?,?,?,@p);";
+    var query = "CALL Edit_Category(?,?,?,@p);";
      pool.query(  
       query ,
-      [api,idd,catname,imgname],  
+      [api,idd,catname],  
        (error, results, fields) => {
         console.log(results);
          if (error) {    
@@ -111,5 +108,23 @@ module.exports = {
        }
      );
    },
-
+   DELETE_CATEGORY: (body, callBack) => {
+    let Api_token = body.api_token;
+    let deleteid = body.id;
+    var query = "CALL Delete_Category(?,?,@p);" ;
+     pool.query(  
+      query ,
+      [Api_token,deleteid],  
+       (error, results, fields) => {
+        
+         if (error) {    
+           callBack(error);
+         }
+         else{
+          console.log(results);
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
 }

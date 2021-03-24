@@ -64,6 +64,7 @@ const BetaRouter  = require("./Api/BetaProduct/beta.router")
 const SupportRouter  = require("./Api/Support/support.router")
 const Newsletter  = require("./Api/Newsletter/newsletter.router")
 const Settings  = require("./Api/Settings/settings.router")
+const Merchant  = require("./Api/Merchant/Merchant.router")
 
  
  app.use("/api/adminlogin",AdminLoginRouter);
@@ -83,6 +84,7 @@ const Settings  = require("./Api/Settings/settings.router")
  app.use("/api/support",SupportRouter)
  app.use("/api/newsletter",Newsletter)
  app.use("/api/settings",Settings)
+ app.use("/api/merchant",Merchant)
  
 
 // runing on port

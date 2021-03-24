@@ -6,7 +6,7 @@ const{ GET_VOUCHER_BY_ID } = require("../Voucher/Voucher.service");
 const{ CHANGE_VOUCHER_STATUS } = require("../Voucher/Voucher.service");
 const{ EDIT_VOUCHER } = require("../Voucher/Voucher.service");
 const{ DELETE_PRODUCT } = require("../Voucher/Voucher.service");
-
+var s3w = require("../Aws.s3")
 const fs = require("fs");
 const { Console } = require("console");
 module.exports = {
@@ -68,52 +68,57 @@ module.exports = {
     else if (!req.body.expired_time) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
 
     var imgname=   makeid(5);
-    fs.writeFileSync("Api\\Images\\VoucherImages\\" + imgname +".png", body.files.pImage.data);
-    
-    ADD_VOUCHER(body, imgname, (err, results) => {
-
-      if (err) {
-
-        return res.json({
-          status: "fatal_error",
-          statuscode: "500",
-          data: err
-        });
-      }
-
-      else if (results[0].err_id == 1) {
-
-        return res.json({
-          status: "success",
-          statuscode: "1",
-          msg: "Voucher Insert Successfully..."
-        });
-      }
-
-      else if (results[0].err_id == -2) {
-        return res.json({
-          status: "failure",
-          statuscode: "2",
-          msg: "Voucher Name Already Inserted"
-        });
-      }
-      else if (results[0].err_id == -1) {
-        return res.json({
-          status: "failure",
-          statuscode: "2",
-          msg: "Invalid Api token."
-        });
-      }
-      else {
-        return res.json({
-          status: "failure",
-          statuscode: "420",
-          data: results
-        });
-      }
-
-
-    });
+     s3w.uploadFile (req.files.photo.data,imgname, (results, err) => {
+        if (results) {
+          ADD_VOUCHER(body, results, (err, results) => {
+            if (err) {
+              return res.json({
+                status: "fatal_error",
+                statuscode: "500",
+                data: err
+              });
+            }
+            else if (results[0].err_id == 1) {
+      
+              return res.json({
+                status: "success",
+                statuscode: "1",
+                msg: "Voucher Insert Successfully..."
+              });
+            }
+      
+            else if (results[0].err_id == -2) {
+              return res.json({
+                status: "failure",
+                statuscode: "2",
+                msg: "Voucher Name Already Inserted"
+              });
+            }
+            else if (results[0].err_id == -1) {
+              return res.json({
+                status: "failure",
+                statuscode: "2",
+                msg: "Invalid Api token."
+              });
+            }
+            else {
+              return res.json({
+                status: "failure",
+                statuscode: "420",
+                data: results
+              });
+            }
+      
+      
+          });
+         
+          
+        }
+        else {
+          throw err;
+        }
+      });
+  
   },
   getVoucherById: (req, res) => {
     let body = req.body;

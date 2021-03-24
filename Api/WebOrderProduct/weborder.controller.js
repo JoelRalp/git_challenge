@@ -1,12 +1,13 @@
 const fs = require("fs");
 const { Console } = require("console");
-const { VIEW_WEBORDER,ADD_WEBORDER_PRODUCT,GET_WEBORDER_PRODUCT_ID,DELETE_WEBORDER_PRODUCT,CHANGE_WEBORDER_PRODUCT_STATUS,EDIT_WEBORDER_PRODUCT} = require("./weborder.service.");
+const { VIEW_WEBORDER,ADD_WEBORDER_PRODUCT,GET_WEBORDER_PRODUCT_ID,DELETE_WEBORDER_PRODUCT,CHANGE_WEBORDER_PRODUCT_STATUS,EDIT_WEBORDER_PRODUCT,VIEW_USER} = require("./weborder.service.");
 const { makeid, refresh } = require("../Mqtt/server");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
 
 
 module.exports = {
   viewWebOrder: (req, res) => {
+  
     const body = req.body;
     if (!req.body.api_token) { reqallfeild }
     VIEW_WEBORDER(body, (err, results) => {
@@ -116,6 +117,16 @@ module.exports = {
       else if (results[0].err_id == -1) { return res.json(apierrmsg); }
       else if (results[0].err_id == -2) { insfailure.msg = "Web order product name already inserted"; return res.json(insfailure); }
       else { resfailure.msg = results; return res.json(resfailure); }
+    });
+  },
+  viewUser: (req, res) => {
+    console.log("in");
+    const body = req.body;
+    if (!req.body.api_token) { reqallfeild }
+    VIEW_USER(body, (err, results) => {
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
+      else { sucess.data = results; return res.json(sucess); }
     });
   },
 }

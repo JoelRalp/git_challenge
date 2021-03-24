@@ -19,8 +19,30 @@ module.exports = {
     );
   },
   ADD_NEWSLETTER: (body,callBack) => {
+    
      pool.query(
        "CALL Add_Newsletter(?,?,?,?,?,@p);",
+       [body.api_token,
+        body.title,
+        body.sub_title,
+        body.description,
+        body.pStatus
+       ],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   ADD_NEWSPOST: (body,img,callBack) => {
+    
+     pool.query(
+       "CALL Add_Newsletter(?,?,?@p);",
        [body.api_token,
         body.title,
         body.sub_title,
@@ -99,7 +121,7 @@ module.exports = {
        }
      );
    },
-   EDIT_NEWSLETTER: (body,callBack) => {
+   EDIT_NEWSLETTER: (body,img,callBack) => {
     pool.query(
       "CALL Edit_Newsletter(?,?,?,?,?,?,@p);",
       [body.api_token,
