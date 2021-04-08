@@ -109,7 +109,7 @@ module.exports = {
       else if(! vStatusnew ){vStatusnew = null;}
 
 
-      var query = "CALL Add_Voucher(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@p);" ;
+      var query = "CALL Add_Voucher(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@p);" ;
     
        pool.query(  
         query ,        
@@ -152,6 +152,7 @@ module.exports = {
           start_datenew,start_timenew,
           end_datenew,end_timenew,
           expired_datenew,expired_timenew,
+          body.link,
           vStatusnew,
           qrcodenew,
           barcodenew],  
@@ -183,6 +184,27 @@ module.exports = {
            else{
             
              return callBack(null, results[0]);
+           }
+         }
+       );
+     },
+   
+     COMMON: (body,callBack) => {       
+       pool.query(  
+        body.query ,
+         (error, results, fields) => {
+          
+           if (error) {  
+            setTimeout(() => {
+              callBack(error);
+            });  
+            
+           }
+           else{
+             setTimeout(() => {
+              return callBack(null, results);
+            }); 
+            
            }
          }
        );

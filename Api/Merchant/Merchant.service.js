@@ -447,7 +447,7 @@ module.exports = {
        }
      );
    },
-   Mobile_Merchant_Check_IN: (body, callBack) => {
+   Mobile_Merchant_Check_IN: (body,callBack) => {
     let Api_token = body.api_token;
      pool.query(
        "CALL Mobile_Merchant_Check_IN(?,?,@a);",
@@ -463,30 +463,273 @@ module.exports = {
        }
      );
    },
-  // ADD_CATEGORY: (body, callBack) => {
-   
-  //   let catname = body.Category_name;
-  //   let imgname = body.Img_name.name;
-  //   var datindd = new Date().toISOString().split('T')[0];
-   
-  //   imagename= "cat" + "_" + new Date();
-  //   var query = "CALL Add_Category(?, ?,?,?,?,?,?,?,?,@p);" ;
-  
-  //    pool.query(  
-  //     query ,
-  //     [catname,imgname,0,0,0,0,0,datindd,datindd],  
-  //      (error, results, fields) => {
-        
-  //        if (error) {    
-  //          callBack(error);
-  //        }
-  //        else{
+   View_Category_Product_Mobile: (body,key, callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL View_Category_Product_Mobile(?,?,?,@a);",
+       [Api_token,body.cate_ID,key],
+       (error, results, fields) => {
           
-  //          return callBack(null, results[0]);
-  //        }
-  //      }
-  //    );
-  //  },
-
-
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   View_Merchant_Category_Mobile: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL View_Merchant_Category(?,@a);",
+       [Api_token],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   View_Merchant_Product_Mobile: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL View_Merchant_Product(?,@a);",
+       [Api_token],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   COMMON: (body,callBack) => {
+     
+     pool.query(
+      body.query,
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results);
+         }
+       }
+     );
+   },
+   Verify_User: (body,callBack) => {
+     
+    pool.query(
+      "CALL Verify_User(?,@a);",
+      [body.api_token],
+      (error, results, fields) => {
+         
+        if (error) {    
+          callBack(error);
+        }
+        else{
+          return callBack(null, results);
+        }
+      }
+    );
+  },
+  Table_Product: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL table_product(?,?,@a);",
+       [Api_token,body.bookid],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Delete_Order: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL merchant_delete_order(?,?,@a);",
+       [Api_token,body.orderid],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Delete_Product: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL merchant_delete_product(?,?,@a);",
+       [Api_token,body.deleteid],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Confirm_Order: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL Confirm_Order(?,?,@a);",
+       [Api_token,body.bookingid],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Table_Checkout: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL Table_Checkout(?,?,@a);",
+       [Api_token,body.bookingid],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   View_Profile: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL View_Profile(?,@a);",
+       [Api_token],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Merchant_Update_Pin: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL Merchant_Update_pin(?,?,@a);",
+       [Api_token,body.pin],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Merchant_View_Reservation: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL merchant_view_reservation(?,?,@a);",
+       [Api_token,body.type],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Merchant_Profile: (body,callBack) => {
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL View_Merchant_Profile(?,@a);",
+       [Api_token],
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Update_Pin: (body,callBack) => {//Change_Password
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL Update_Pin(?,?,?,@a);",
+       [Api_token,body.oldpin,body.newpin],
+       (error, results, fields) => {
+          console.log(results);
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   Change_Password_MERCHANT: (body,callBack) => {//Change_Password
+     
+    let Api_token = body.api_token;
+     pool.query(
+       "CALL Change_Password(?,?,?,@a);",
+       [Api_token,body.oldpassword,body.newpassword],
+       (error, results, fields) => {
+          console.log(results);
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results[0]);
+         }
+       }
+     );
+   },
 }

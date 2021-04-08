@@ -1,6 +1,6 @@
 const fs = require("fs");
 const { Console } = require("console");
-const { VIEW_NEWSLETTER,ADD_NEWSLETTER,GET_NEWSLETTER_ID,DELETE_NEWSLETTER,CHANGE_NEWSLETTER_STATUS,EDIT_NEWSLETTER} = require("./newsletter.service.");
+const { VIEW_NEWSLETTER,ADD_NEWSLETTER,GET_NEWSLETTER_ID,DELETE_NEWSLETTER,CHANGE_NEWSLETTER_STATUS,EDIT_NEWSLETTER,VIEW_IMAGE} = require("./newsletter.service.");
 const { makeid, refresh } = require("../Mqtt/server");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
 const s3w = require("../Aws.s3");
@@ -14,32 +14,37 @@ module.exports = {
       else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
       else { sucess.data = results; return res.json(sucess); }
     });
-  },//function getCartCode(res)  {
-   addNewsLetter: (req, res) => {
+  },
+  addNewsLetter: (req, res) => {
     const body = req.body;
     let images = req.files.pImage;
-    let key = [];
     let i = 0;
+    let j = -1;
+    let keys = 0;
     if (!req.body.api_token) { return res.json(apierrmsg) }
     else if (!req.body.title) { return res.status(200).json(reqallfeild) }
     else if (!req.body.sub_title) { return res.status(200).json(reqallfeild) }
     else if (!req.body.description) { return res.status(200).json(reqallfeild) }
     else if (!req.body.pStatus) { return res.status(200).json(reqallfeild) } 
     else if (!req.files && req.files.pImage) { return res.status(200).json(reqallfeild) } 
+   if(req.files.pImage.length > 1) {
     images.forEach(element => {
+      j++;
       var imgname = makeid(5);
-     s3w.uploadFile (element.data, imgname, (results, err) => {
+     s3w.uploadFile (element.data,imgname,(results, err) => {
+if(j >1){
+keys = 1
+}
         if (results) {
-         
-            ADD_NEWSLETTER(body,path,(err, results) => {
-             
-              if (err) { fatal_error.data = err; return res.json(fatal_error); }
-              else if(results.err_id == "-2"){insfailure.msg = "Newsletter title already inserted"; return res.json(insfailure);}
-            else if(results)
-            {
-              key.push(results)
-
-            }
+         let path = results;
+            ADD_NEWSLETTER(body,path,keys,(err, results) => {
+              i++;
+              if(i == req.files.pImage.length)
+              {
+                if (err) { fatal_error.data = err; return res.json(fatal_error); }
+                else if(results[0].err_id == "-2"){insfailure.msg = "Newsletter title already inserted"; return res.json(insfailure);}
+                else if (results[0].err_id == '1') { sucess.data = "Newsletter inserted successfully"; return res.json(sucess); }
+              }
            });
           
         }
@@ -47,8 +52,29 @@ module.exports = {
           throw err;
         }
       });
-     console.log(key);
     });
+   }
+   else{
+    
+      var imgname = makeid(5);
+     s3w.uploadFile (req.files.pImage.data,imgname, (results, err) => {
+        if (results) {
+         let path = results;
+            ADD_NEWSLETTER(body,path,keys,(err, results) => {
+             
+            if (err) { fatal_error.data = err; return res.json(fatal_error); }
+            else if(results[0].err_id == "-2"){insfailure.msg = "Newsletter title already inserted"; return res.json(insfailure);}
+            else if (results[0].err_id == '1') { sucess.data = "Newsletter inserted successfully"; return res.json(sucess); }
+           });
+          
+        }
+        else {
+          throw err;
+        }
+      });
+   
+   }
+  
   
   },
   getNewsLettertId: (req, res) => {
@@ -106,6 +132,20 @@ module.exports = {
       else if (results[0].err_id == -1) { return res.json(apierrmsg); }
       else if (results[0].err_id == -2) { insfailure.msg = "Newsletter already inserted"; return res.json(insfailure); }
       else { resfailure.msg = results; return res.json(resfailure); }
+    });
+  },
+  viewNewsLetterImage: (req, res) => {
+    const body = req.body;
+    if (!req.body.api_token) { reqallfeild }
+    if (!req.body.id) { reqallfeild }
+    body.query = 'Select a.pImage,a.pID from newpost_image a inner join tb_newpost b on a.pID = b.id where id = ' + " '" + body.id + "'" ;
+    ;
+    VIEW_IMAGE(body, (err, results) => {
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+     if(results.length > 0){
+      { sucess.data = results; return res.json(sucess); }
+     }
+     else{ return res.json(nodatafound);}
     });
   },
 }

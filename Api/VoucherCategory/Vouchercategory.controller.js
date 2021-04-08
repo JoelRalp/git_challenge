@@ -25,22 +25,30 @@ module.exports = {
           data: err
         });
       }
-
-      else if (results[0].err_id == "-1") {
-        return res.json({
-          status: "failure",
-          statuscode: "4",
-          msg: "Invalid admin api token."
-        });
-      }
-
-      else {
-        return res.json({
-          status: "success",
-          statuscode: "1",
-          data: results
-        });
-      }
+if(results){
+  if (results[0].err_id == "-1") {
+    return res.json({
+      status: "failure",
+      statuscode: "4",
+      msg: "Invalid admin api token."
+    });
+  }
+  else {
+    return res.json({
+      status: "success",
+      statuscode: "1",
+      data: results
+    });
+  }
+ 
+}
+   else{
+    return res.json({
+      status: "failure",
+      statuscode: "3",
+      msg: "NO data found."
+    });
+   }  
 
 
     });

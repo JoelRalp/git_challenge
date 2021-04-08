@@ -226,5 +226,21 @@ module.exports = {
        }
      );
    },
- 
+   VIEW_NATIONALITY: (body,key,callBack) => {
+
+    let query = key;
+  
+     pool.query(
+        query,
+       (error, results, fields) => {
+          
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results);
+         }
+       }
+     );
+   },
 }

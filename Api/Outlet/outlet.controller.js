@@ -201,49 +201,102 @@ module.exports = {
     else if (!req.body.email) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.address) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.work_hour) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
-    else if (!req.files || !req.files.out_image) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.coordinates) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.outStatus) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
 
     var imgname = makeid(5);
-    var path = s3w.uploadFile(req.files.out_image.data,imgname);
+    
+    if(req.files){
+
+      s3w.uploadFile (req.files.out_image.data,imgname,(results, err) => {
+        if (results) {
+        let img = results;
+        body.img = img;
+          EDIT_OUTLET(body,(err, results) => {
+
+            if (err) {
+      
+              return res.json({
+                status: "fatal_error",
+                statuscode: "500",
+                data: err
+              });
+            }
+            else if (results[0].err_id == '-2') {
+              return res.json({
+                status: "failure",
+                statuscode: "3",
+                data: "Outlet Name Aready Exists"
+              });
+            }
+      
+            else if (results[0].err_id == '-1') {
+              return res.json({
+                status: "failure",
+                statuscode: "3",
+                msg: "Invalid admin api token"
+              });
+            }
+            else if (results[0].err_id == '1') {
+              refresh();
+              return res.json({
+                status: "success",
+                statuscode: "1",
+                data: "Outlet updated successfully"
+              });
+            }
+      
+      
+          });
+          
+        }
+        else {
+          throw err;
+        }
+      });
+    }
+    else{
+      EDIT_OUTLET(body,(err, results) => {
+
+        if (err) {
+  
+          return res.json({
+            status: "fatal_error",
+            statuscode: "500",
+            data: err
+          });
+        }
+        else if (results[0].err_id == '-2') {
+          return res.json({
+            status: "failure",
+            statuscode: "3",
+            data: "Outlet Name Aready Exists"
+          });
+        }
+  
+        else if (results[0].err_id == '-1') {
+          return res.json({
+            status: "failure",
+            statuscode: "3",
+            msg: "Invalid admin api token"
+          });
+        }
+        else if (results[0].err_id == '1') {
+          refresh();
+          return res.json({
+            status: "success",
+            statuscode: "1",
+            data: "Outlet updated successfully"
+          });
+        }
+  
+  
+      });
+    }
+   
+   
        
-    EDIT_OUTLET(body, path, (err, results) => {
-
-      if (err) {
-
-        return res.json({
-          status: "fatal_error",
-          statuscode: "500",
-          data: err
-        });
-      }
-      else if (results[0].err_id == '-2') {
-        return res.json({
-          status: "failure",
-          statuscode: "3",
-          data: "Outlet Name Aready Exists"
-        });
-      }
-
-      else if (results[0].err_id == '-1') {
-        return res.json({
-          status: "failure",
-          statuscode: "3",
-          msg: "Invalid admin api token"
-        });
-      }
-      else if (results[0].err_id == '1') {
-        refresh();
-        return res.json({
-          status: "success",
-          statuscode: "1",
-          data: "Outlet updated successfully"
-        });
-      }
-
-
-    });
+   
   },
   deleteOutlet: (req, res) => {
     console.log("in");  

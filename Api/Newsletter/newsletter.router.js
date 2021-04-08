@@ -1,5 +1,5 @@
 
-const {viewNewsLetter,addNewsLetter,getNewsLettertId,deleteNewsLettertId,changeNewsLettertStatus,editnewsletter} = require("./newsletter.controller");
+const {viewNewsLetter,addNewsLetter,getNewsLettertId,deleteNewsLettertId,changeNewsLettertStatus,editnewsletter,viewNewsLetterImage} = require("./newsletter.controller");
 
 const router = require("express").Router();
 
@@ -9,4 +9,5 @@ router.post("/Getnewsletter",getNewsLettertId);
 router.post("/Deletenewsletter",deleteNewsLettertId);
 router.post("/changenewsletterststus",changeNewsLettertStatus);
 router.post("/editnewsletter",editnewsletter);
+router.post("/ViewNewsImage",viewNewsLetterImage);
 module.exports = router;

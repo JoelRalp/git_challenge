@@ -1,5 +1,5 @@
 
-const {viewEmployee,addEmployee,getEmployeeById,changeEmployeeStatus,editEmployee,deleteEmployee,viewEmployeeRole,addEmployeeRole,getEmployeeRoleById,editEmployeeRole,deleteEmployeeRole,changeEmployeeRoleStatus} = require("./employee.controller");
+const {viewEmployee,addEmployee,getEmployeeById,changeEmployeeStatus,editEmployee,deleteEmployee,viewEmployeeRole,addEmployeeRole,getEmployeeRoleById,editEmployeeRole,deleteEmployeeRole,changeEmployeeRoleStatus,getNationality} = require("./employee.controller");
 
 const router = require("express").Router();
 
@@ -16,5 +16,5 @@ router.post("/GetEmployeeRoleByID",getEmployeeRoleById);
 router.post("/ChangeEmployeeRoleStatus",changeEmployeeRoleStatus);
 router.post("/EditEmployeeRole",editEmployeeRole);
 router.post("/DeleteEmployeeRole",deleteEmployeeRole);
-
+router.post("/GetNationality",getNationality);
 module.exports = router;

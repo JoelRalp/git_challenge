@@ -22,6 +22,7 @@ module.exports = {
          else if (!req.body.description) { return res.status(200).json(reqallfeild) }
        
          ADD_PRIVACY(body, (err, results) => {
+           console.log(results);
           if (err) { fatal_error.data = err; return res.json(fatal_error); }
           else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
           else { sucess.data = results; return res.json(sucess); }
@@ -71,6 +72,7 @@ module.exports = {
     else if (!req.body.service_tax) { return res.status(200).json(reqallfeild ) }//
     else if (!req.body.discount) { return res.status(200).json(reqallfeild ) }//
     else if (!req.body.decimals) { return res.status(200).json(reqallfeild ) }//
+    else if (!req.body.editid) { return res.status(200).json(reqallfeild ) }//
     EDIT_POS(body, (err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       else if (results[0].err_id == 1) {

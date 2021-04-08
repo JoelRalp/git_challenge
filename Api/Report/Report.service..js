@@ -80,7 +80,7 @@ module.exports = {
          }
        }
      );
-   },
+   },//DEAT_VOUCHER
    RESERVATION_REPORT: (body,code, callBack) => {
     let Api_token = body.api_token;
      pool.query(
@@ -93,6 +93,20 @@ module.exports = {
          }
          else{
            return callBack(null, results[0]);
+         }
+       }
+     );
+   },
+   DEAT_VOUCHER: (body,code, callBack) => {
+    let query = code;
+     pool.query(
+      query,
+       (error, results, fields) => {
+         if (error) {    
+           callBack(error);
+         }
+         else{
+           return callBack(null, results);
          }
        }
      );

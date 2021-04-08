@@ -18,15 +18,17 @@ module.exports = {
       }
     );
   },
-  ADD_NEWSLETTER: (body,callBack) => {
+  ADD_NEWSLETTER: (body,img,keys,callBack) => {
     
      pool.query(
-       "CALL Add_Newsletter(?,?,?,?,?,@p);",
+       "CALL Add_Newsletter(?,?,?,?,?,?,?,@p);",
        [body.api_token,
         body.title,
         body.sub_title,
         body.description,
-        body.pStatus
+        body.pStatus,
+        img,
+        keys
        ],
        (error, results, fields) => {
           
@@ -39,27 +41,7 @@ module.exports = {
        }
      );
    },
-   ADD_NEWSPOST: (body,img,callBack) => {
-    
-     pool.query(
-       "CALL Add_Newsletter(?,?,?@p);",
-       [body.api_token,
-        body.title,
-        body.sub_title,
-        body.description,
-        body.pStatus
-       ],
-       (error, results, fields) => {
-          
-         if (error) {    
-           callBack(error);
-         }
-         else{
-           return callBack(null, results[0]);
-         }
-       }
-     );
-   },
+  
    GET_NEWSLETTER_ID: (body, callBack) => {
     let Api_token = body.api_token;
     let editid = body.editid;
@@ -121,7 +103,7 @@ module.exports = {
        }
      );
    },
-   EDIT_NEWSLETTER: (body,img,callBack) => {
+   EDIT_NEWSLETTER: (body,callBack) => {
     pool.query(
       "CALL Edit_Newsletter(?,?,?,?,?,?,@p);",
       [body.api_token,
@@ -138,6 +120,19 @@ module.exports = {
         }
         else{
           return callBack(null, results[0]);
+        }
+      }
+    );
+  },
+  VIEW_IMAGE: (body,callBack) => {
+    pool.query(
+    body.query,
+      (error, results, fields) => {  
+        if (error) {    
+          callBack(error);
+        }
+        else{
+          return callBack(null, results);
         }
       }
     );

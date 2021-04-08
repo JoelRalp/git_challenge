@@ -8,7 +8,7 @@ var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfai
 module.exports = {
   viewBetaCategory: (req, res) => {
     const body = req.body;
-    if (!req.body.api_token) { reqallfeild }
+    if (!req.body.api_token) {  return res.json(apierrmsg) }
     VIEW_BETA_CATEGORY(body, (err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       else if (results[0].err_id == "-1") { return res.json(apierrmsg); }

@@ -1,0 +1,50 @@
+const {Login_phone} = require("./User.controller");
+const {Otp_verified} = require("./User.controller");
+const {Login_otpverified} = require("./User.controller");
+const {Otp_resend} = require("./User.controller");
+const {Name_update} = require("./User.controller");
+const {Facebook_login} = require("./User.controller");
+const {Google_login} = require("./User.controller");
+const {Apple_login} = require("./User.controller");
+const {UseData_get} = require("./User.controller");
+const {Add_firebase} = require("./User.controller");
+const {Check_referral} = require("./User.controller");
+const {Referral_list} = require("./User.controller");
+const {View_outlet} = require("./User.controller");
+const {Add_reservation} = require("./User.controller");
+const {View_reservation} = require("./User.controller");
+const {Cancel_reservation} = require("./User.controller");
+const {View_voucher} = require("./User.controller");
+const {Add_voucherfavourite} = require("./User.controller");
+const {View_voucherfavourite} = require("./User.controller");
+const {add_Redeem} = require("./User.controller");
+const {check_Redeem} = require("./User.controller");
+const {view_Category} = require("./User.controller");
+
+const router = require("express").Router();
+
+router.post('/loginPhone',Login_phone);
+router.post('/otpVerified',Otp_verified);
+router.post('/loginOtpVerified',Login_otpverified);
+router.post('/resendOtp',Otp_resend);
+router.post('/updateName',Name_update);
+router.post('/loginFacebook',Facebook_login);
+router.post('/loginGoogle',Google_login);
+router.post('/loginApple',Apple_login);
+router.post('/getUseData',UseData_get);
+router.post('/firebase',Add_firebase);
+router.post('/referral',Check_referral);
+router.post('/referralList',Referral_list);
+router.post('/viewOutlet',View_outlet);
+router.post('/addReservation',Add_reservation);
+router.post('/viewReservation',View_reservation);
+router.post('/cancelReservation',Cancel_reservation);
+router.post('/viewVoucher',View_voucher);
+router.post('/addVoucherFavourite',Add_voucherfavourite);
+router.post('/viewVoucherFavourite',View_voucherfavourite);
+router.post('/addRedeem',add_Redeem);
+router.post('/checkRedeem',check_Redeem);
+router.post('/viewCategory',view_Category);
+
+module.exports = router;
+

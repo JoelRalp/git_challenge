@@ -2,26 +2,33 @@ const pool = require("../../config/database");
 
 module.exports = {
  
-  VIEW_WEBORDER: (body, callBack) => {
+  VIEW_WEBORDER: (body,key,callBack) => {
+    
    let Api_token = body.api_token;
+
+   
     pool.query(
-      "CALL View_WebOrderProduct(?,@a);",
-      [Api_token],
+      "CALL View_WebOrderProduct(?,?,@a);",
+      [Api_token,key],
       (error, results, fields) => {
          
         if (error) {    
           callBack(error);
         }
         else{
-          return callBack(null, results[0]);
+          return callBack(null,results[0]);
         }
       }
     );
+   
+  
+   
   },
-  VIEW_USER: (body, callBack) => {
+  VIEW_USER: (body,callBack) => {
     let Api_token = body.api_token;
+    var code = "CALL View_Member(?,@a);";
      pool.query(
-       "CALL View_Member(?,@a);",
+       code,
        [Api_token],
        (error, results, fields) => {
           
@@ -36,38 +43,41 @@ module.exports = {
    },
   ADD_WEBORDER_PRODUCT: (body,img,callBack) => {
      pool.query(
-       "CALL Add_WebOrder_Product(?,?,?,?,?,?,?,?,?,?,@p);",
-       [body.api_token,
-        body.name,
-        img,
-        body.description,
-        body.cateID,
-        body.stock_status,
-        body.webcateid,
-        body.price,
-        body.addon,
-        body.quantity
-       ],
+      body.query,
        (error, results, fields) => {
           
          if (error) {    
            callBack(error);
          }
          else{
-           return callBack(null, results[0]);
+           return callBack(null, results);
          }
        }
      );
    },
-   GET_WEBORDER_PRODUCT_ID: (body, callBack) => {
+   COMMON: (body,callBack) => {
+    pool.query(
+     body.query,
+      (error, results, fields) => {
+         
+        if (error) {    
+          callBack(error);
+        }
+        else{
+          return callBack(null, results);
+        }
+      }
+    );
+  },
+   GET_WEBORDER_PRODUCT_ID: (body,key, callBack) => {
     let Api_token = body.api_token;
     let editid = body.editid;
     editid = parseInt(editid);
-    var query = "CALL Get_WebOrderProduct__By_Id(?,?,@p);" ;
+    var query = "CALL Get_WebOrderProduct__By_Id(?,?,?,@p);" ;
   
      pool.query(  
       query ,
-      [editid,Api_token],  
+      [editid,Api_token,key],  
        (error, results, fields) => {
         
          if (error) {    

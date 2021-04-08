@@ -99,7 +99,7 @@ module.exports = {
          body.discount,
          body.default_tax,
          body.service_tax,
-         body.timezone,  
+         body.editid,  
          body.decimals,
         ],
         (error, results, fields) => {
