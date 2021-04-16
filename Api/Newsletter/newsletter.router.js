@@ -1,5 +1,5 @@
 
-const {viewNewsLetter,addNewsLetter,getNewsLettertId,deleteNewsLettertId,changeNewsLettertStatus,editnewsletter,viewNewsLetterImage} = require("./newsletter.controller");
+const {viewNewsLetter,editNewsLetterImage,addNewsLetter,getNewsLettertId,deleteNewsLettertId,changeNewsLettertStatus,editnewsletter,viewNewsLetterImage} = require("./newsletter.controller");
 
 const router = require("express").Router();
 
@@ -10,4 +10,5 @@ router.post("/Deletenewsletter",deleteNewsLettertId);
 router.post("/changenewsletterststus",changeNewsLettertStatus);
 router.post("/editnewsletter",editnewsletter);
 router.post("/ViewNewsImage",viewNewsLetterImage);
+router.post("/editNewsLetterImage",editNewsLetterImage);
 module.exports = router;

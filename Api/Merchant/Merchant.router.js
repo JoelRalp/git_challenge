@@ -13,15 +13,15 @@ const {statusChange_Merchant}=require("./Merchant.controller");
 const {delete_Merchant}=require("./Merchant.controller");
 const {check_Pin,UpdatePin} = require("./Merchant.controller");
 const {day_EndSummary,ChangeMerPassword} = require("./Merchant.controller");
-const {add_EndSummary,TableCheckout,ViewMerchantProfile} = require("./Merchant.controller");
-const {day_EndReprot,ConfirmOrder} = require("./Merchant.controller");
-const {day_EndReprotSearch,DeleteOrder,DeleteProduct,ViewMerchantReservation} = require("./Merchant.controller");
+const {add_EndSummary,TableCheckout,ViewMerchantProfile,Cancelreservation} = require("./Merchant.controller");
+const {day_EndReprot,ConfirmOrder,Fiter_Reservation} = require("./Merchant.controller");
+const {day_EndReprotSearch,DeleteOrder,DeleteProduct,ViewMerchantReservation,Fiter_History} = require("./Merchant.controller");
 const {merchant_Topup,Table,TableProduct} = require("./Merchant.controller");
 const {payment_Wallet,webCategoryProductMobile,MerchantCategory,MerchantProduct} = require("./Merchant.controller");
 const {topup_History,viewMobileMerchantProductStock,viewMobileCategory,viewMobileMerchantProductStockStatus,viewMobileMerchantReservationHistory,mobileMerchantCheckin} = require("./Merchant.controller");
 
-const router = require("express").Router();
 
+const router = require("express").Router();
 router.post('/login',Merchant_login);
 router.post('/paymentpoint',Payment_Point);
 router.post('/paymentType',Payment_Type);
@@ -59,9 +59,12 @@ router.post("/ConfirmOrder",ConfirmOrder);
 router.post("/TableCheckout",TableCheckout);
 router.post("/ViewProfile",ViewProfile);
 router.post("/UpdatePin",UpdatePin);
-router.post("/PushNotification",PushNotification);//UpdatePin
+router.post("/PushNotification",PushNotification);
 router.post("/ViewMerchantReservation",ViewMerchantReservation);
 router.post("/ViewMerchantProfile",ViewMerchantProfile);
 router.post("/UpdatePinCode",UpdatePinCode);
 router.post("/ChangeMerPassword",ChangeMerPassword);
+router.post("/Fiter_History",Fiter_History);
+router.post("/Fiter_Reservation",Fiter_Reservation);
+router.post("/Cancel_Reservation",Cancelreservation);
 module.exports = router;

@@ -2,8 +2,10 @@ const fs = require("fs");
 const { Console } = require("console");
 const {VOUCHER_REPORT,PAYMENT_REPORT,TOPUP_REPORT,REFERAL_REPORT,RESERVATION_REPORT,DAYEND_REPORT,DEAT_VOUCHER} = require("./Report.service.");
 const { makeid, refresh } = require("../Mqtt/server");
+const { Verify_Employee } = require("../common.service");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
-
+const ASYNC = require('async');
+const { COMMON } = require("../WebOrderProduct/weborder.service.");
 
 module.exports = {
   voucherReport: (req, res) => {
@@ -288,12 +290,13 @@ console.log(body);
     });
   },
   WeborderReport: (req, res) => {
+    console.log("in");
 let order =[];
 let total = 0;
 let ordrid = [];
 let resjson;
-let totaljson = [];
-let resjsonnew =[];
+
+
     const body = req.body;
   let out = "";
     var query = "Select t.* from booking_table as t where t.status =" + "'checkout' and"
@@ -338,6 +341,7 @@ let resjsonnew =[];
 
     query = query + ";";
     console.log(query);
+    let totaljson =[];
     RESERVATION_REPORT(body, query, (err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       if (results) {
@@ -345,66 +349,202 @@ let resjsonnew =[];
           results.forEach(element => {
             order.push(element);
           });
-          var bar = new Promise((resolve, reject) => {
-            order.forEach(element => {
-              query = "Select * from tb_outlet where id = " +"'"+ element.id + "'";
-              let query2 = "Select * from web_order_placed where book_id = " +"'"+ element.id + "'";
-              RESERVATION_REPORT(body,query,(err, results) => {
-                if (err) { fatal_error.data = err; return res.json(fatal_error); }
-                if (results) {
-                  if (results.length > 0) {
-                   out = results[0].outlet_name;
-                  }
-                  else{
-                    out = "";
-                  }              
-                  RESERVATION_REPORT(body,query2, async(err,results) => {
-                     total = 0;
-                     ordrid = [];
-                    if (err) { fatal_error.data = err; return res.json(fatal_error); }
-                    if (results) {
-                      if (results.length > 0) {
-                        results.forEach(element => {
-                          total = total + element.amount;
-                          ordrid.push(element.orderid);
-                          });                        
-                          resjson = {
-                            "id":element.id,
-                            "checkin_id":element.checkin_id,
-                            "outlet":out,
-                            "table_no":element.table_name,
-                            "checkin_date":element.checkin_date,
-                            "checkout_date":element.checkout_date,
-                            "duration":element.duration,
-                            "total":total,
-                            "order_id":ordrid
-                          };
-                          totaljson.push(resjson);
-                         
-                      }
-                    
-                    }
-                   
-                   
-                  });
-                
-                }
-              });
-            });
-resolve(totaljson);
-
-          });
          
-          bar.then((response) => {
-      
-           console.log(response);
-          
-});
+          ASYNC.each(order, function(element, callback) {
         
+            query = "Select * from tb_outlet where id = " +"'"+ element.id + "'";
+            let query2 = "Select * from web_order_placed where book_id = " +"'"+ element.id + "'";
+            RESERVATION_REPORT(body,query,(err, results) => {
+              if (err) { fatal_error.data = err; return res.json(fatal_error); }
+              if (results) {
+                if (results.length > 0) {
+                 out = results[0].outlet_name;
+                }
+                else{
+                  out = "";
+                }              
+                RESERVATION_REPORT(body,query2, async(err,results) => {
+                   total = 0;
+                   ordrid = [];
+                  if (err) { fatal_error.data = err; return res.json(fatal_error); }
+                  if (results) {
+                    if (results.length > 0) {
+                      results.forEach(element => {
+                        total = total + element.amount;
+                        ordrid.push(element.orderid);
+                        });                        
+                        resjson = {
+                          "id":element.id,
+                          "checkin_id":element.checkin_id,
+                          "outlet":out,
+                          "table_no":element.table_name,
+                          "checkin_date":element.checkin_date,
+                          "checkout_date":element.checkout_date,
+                          "duration":element.duration,
+                          "total":total,
+                          "order_id":ordrid
+                        };
+                        totaljson.push(resjson);
+                    }
+                    callback();
+                  }
+                });              
+              }
+            });
+
+          }, function(err) {
+            console.log(totaljson);
+          if(err){throw err;}
+          else {
+            sucess.data = totaljson; return res.json(sucess); 
+          }
+        });
         }
         else {
           return res.json(nodatafound);
         }
+      }
+    });
+  },
+  WeborderReportList: (req, res) => {
+    const body = req.body;
+    if (!req.body.api_token) { return res.status(200).json(reqallfeild) }
+    else if (!req.body.book_id) { return res.status(200).json(reqallfeild) }
+    Verify_Employee(body,(err,results) => {
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else if(results.err_id == "-1"){return res.status(200).json(apierrmsg)}
+      else{
+   body.query = "Select * from web_order_placed where book_id = '" + body.book_id + "'" + "order by  id ASC";
+   console.log(body.query);
+   COMMON(body,(err,result) =>{
+     
+    if (err) { fatal_error.data = err; return res.json(fatal_error); }
+    if(result.length > 0 ){
+      let vstatus = "";
+      let totaljson = [];
+      ASYNC.each(result, function(element, callback) {
+      if(element.status == "3"){vstatus = 'Confirmed'}
+      else if(element.status == "4"){vstatus = 'Cancelled'}
+      body.query = "Select COUNT(qty) as count from web_order_placed_addon where (weborderplaceID = '" + element.id + "'"+ " and type = 'product')" + "order by  id ASC";
+      COMMON(body,(err,result) =>{
+        let count;
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        else{
+          count = result[0].count;
+        let json = {
+          "id":element.id,
+          "order_id":element.orderid,
+          "status":vstatus,
+          "count":count,
+          "amount":element.amount,
+          "date":element.created_at
+        }
+        totaljson.push(json);
+      }
+        
+        callback();
+      });
+      },function(err)       
+      {
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        else{sucess.data = totaljson; return res.json(sucess); }
+      });
+    }
+    else{return res.json(nodatafound);}
+   });
+}
+
+    })
+  },
+  WeborderReportPdf: (req, res) => {
+
+    const body = req.body;
+   let dataTop = {};
+   let dataaddon = [];
+   let variation = [];
+   let sst = 0;
+   let stax = 0;
+   let newtotal = 0;
+   let roundamt = 0;
+   let newroundamt = 0;
+    if (!req.body.api_token) { return res.status(200).json(reqallfeild) }
+    else if (!req.body.id) { return res.status(200).json(reqallfeild) }
+    Verify_Employee(body,(err,results) => {
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else if(results.err_id == "-1"){return res.status(200).json(apierrmsg)}
+      else{
+        body.query = "Select wp.* from web_order_placed as wp join booking_table as bt on wp.book_id = bt.id where wp.id = '" + body.id + "'";
+        COMMON(body,(err,result) =>{
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          if(result){
+            if(result.length > 0)
+            {
+              dataTop.orderid = result.orderid;
+              dataTop.orderid = result.table_name;
+              dataTop.orderid = result.created_at;
+              body.query = "Select * from web_order_placed_addon where (weborderplaceID = '" + body.id + "' and " + "type = 'product') order by id ASC";
+              console.log(body.query);
+              COMMON(body,(err,result) =>{
+                let total = 0;
+                let subtotal = 0;
+                if (err) { fatal_error.data = err; return res.json(fatal_error); }
+               if(result)
+               {
+                 if(result.length>0)
+                 {
+                  ASYNC.each(result, function(element, callback) {
+                    total = element.qty * element.price;
+                    subtotal = subtotal + total;
+body.query = "Select * from web_order_placed_addon where (type = 'variation' and productid = '" + element.productid +"' and " + "weborderplaceID = '"  + body.id + "'" +")"
+COMMON(body,(err,result) =>{
+  if (err) { fatal_error.data = err; return res.json(fatal_error); }
+  if(result)
+               {
+                variation.push(result);
+                body.query = "Select * from web_order_placed_addon where (type = 'addon' and productid = '" + element.productid +"' and " + "weborderplaceID = '"  + body.id + "'" +")"
+                COMMON(body,(err,result) =>{
+                  if (err) { fatal_error.data = err; return res.json(fatal_error); }
+                  if(result){
+                    if(result.length > 0)
+                    {
+                      result.forEach(element => {
+                        dataaddon.push(element);
+                    });
+                    body.query = "Select * from zarest_settings where id = '1'"
+                    COMMON(body,(err,result) =>{
+                      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+                      if(result){
+                        if(result.length > 0)
+                        {
+                          sst = (result[0].tax/100) * subtotal;
+                          stax = (result[0].service_tax/100) * subtotal;
+                          newtotal = subtotal + sst + stax;
+                          newroundamt = newtotal.toFixed(2);
+                          let lastNum = parseInt(newroundamt[newroundamt.length - 1])
+                          let newroundamt = parseFloat(newroundamt);
+                        }
+                      }
+
+                    });
+                    }
+                  }
+
+                });
+                }
+});
+                  },function (err)
+                  {
+
+                  });
+                    
+                  
+                 }
+                 else{return res.status(200).json(nodatafound)}
+                }
+              });
+          } else{return res.json(nodatafound)}}
+
+        });
       }
     });
   },

@@ -302,10 +302,11 @@ module.exports = {
 
   voucher_View:(data,callBack)=>{
     var uapi_token=data.api_token;
-    var query = "CALL view_user_voucher(?,@p)";
+    var ctype=data.type;
+    var query = "CALL view_user_voucher(?,?,@p)";
     pool.query(
       query,
-      [uapi_token],
+      [uapi_token,ctype],
       (error, results, fields) => {
         if (error) {
           callBack(error);
@@ -449,4 +450,192 @@ module.exports = {
       }
     );
   },
+
+  Newpost_View:(data,callBack)=>{
+     var query = "CALL view_user_newpost(@p)";
+    pool.query(
+      query,
+      [],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Profile_Update:(data,callBack)=>{
+    var uapi_token=data.api_token;
+    var uname=data.name;
+    var uphone=data.phone;
+    var uemail=data.email;
+    var udob=data.dob;
+    var query = "CALL update_user_profile(?,?,?,?,?,@p)";
+      pool.query(
+      query,
+      [uapi_token,uname,uphone,uemail,udob],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  History_Transaction:(data,callBack)=>{
+    var uapi_token=data.api_token;
+    var ttype=data.type;
+    var fkey=data.fkey;
+    var sdate=data.sdate;
+    var edate=data.edate;
+    var query = "CALL user_transaction_history(?,?,?,?,?,@p)";
+     pool.query(
+      query,
+      [uapi_token,ttype,fkey,sdate,edate],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Feedback_Add:(data,CurrentDate,callBack)=>{
+    var uapi_token=data.api_token;
+    var ftitle=data.title;
+    var fdescription=data.description;
+    var femail=data.email;
+    var CurrentDate=CurrentDate;
+    var query = "CALL user_feedback(?,?,?,?,?,@p)";
+    pool.query(
+      query,
+      [uapi_token,ftitle,fdescription,femail,CurrentDate],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Terms_View:(data,callBack)=>{
+     var query = "CALL user_view_terms(@p)";
+    pool.query(
+      query,
+      [],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Privacy_View:(data,callBack)=>{
+     var query = "CALL user_view_privacy(@p)";
+    pool.query(
+      query,
+      [],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Logout_User:(data,callBack)=>{
+    var uapi_token=data.api_token;
+    var ulogin_type=data.login_type;
+    var query = "CALL logout(?,?,@p)";
+    pool.query(
+      query,
+      [uapi_token,ulogin_type],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Level_Current:(data,callBack)=>{
+    var uapi_token=data.api_token;
+    var query = "CALL view_user_current_level(?,@p)";
+    pool.query(
+      query,
+      [uapi_token],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  TierBenefits_View:(data,callBack)=>{
+    var uapi_token=data.api_token;
+    var query = "CALL view_tier_benefits(?,@p)";
+    pool.query(
+      query,
+      [uapi_token],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Tier_View:(data,callBack)=>{
+    var uapi_token=data.api_token;
+    var query = "CALL view_user_tier(?,@p)";
+    pool.query(
+      query,
+      [uapi_token],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Notification_View:(data,CurrentDate,callBack)=>{
+    var uapi_token=data.api_token;
+    var CurrentDate=CurrentDate;
+    var query = "CALL view_user_notification(?,?,@p)";
+    pool.query(
+      query,
+      [uapi_token,CurrentDate],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
 }

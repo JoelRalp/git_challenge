@@ -69,12 +69,28 @@ module.exports = {
     );
   },
 
-  History_Payment:(data,callBack)=>{
-    var merchant_token = data.api_token;
-    var query = "CALL paymenthistory(?,@p)";
+  History_Payment:(body,callBack)=>{
+    var merchant_token = body.api_token;
+    var query = "CALL paymenthistory(?,?,@p)";
     pool.query(
       query,
-      [merchant_token],
+      [merchant_token,body.type],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  History_Payment_Filter:(body,callBack)=>{
+    var merchant_token = body.api_token;
+    
+    var query = "CALL Filter_Payment_History(?,?,?,@p)";
+    pool.query(
+      query,
+      [merchant_token,body.type,body.fkey],
       (error, results, fields) => {
         if (error) {
           callBack(error);
@@ -463,7 +479,7 @@ module.exports = {
        }
      );
    },
-   View_Category_Product_Mobile: (body,key, callBack) => {
+   View_Category_Product_Mobile: (body,key,callBack) => {
      
     let Api_token = body.api_token;
      pool.query(
@@ -698,7 +714,7 @@ module.exports = {
        }
      );
    },
-   Update_Pin: (body,callBack) => {//Change_Password
+   Update_Pin: (body,callBack) => {
      
     let Api_token = body.api_token;
      pool.query(
@@ -715,7 +731,7 @@ module.exports = {
        }
      );
    },
-   Change_Password_MERCHANT: (body,callBack) => {//Change_Password
+   Change_Password_MERCHANT: (body,callBack) => {
      
     let Api_token = body.api_token;
      pool.query(
@@ -732,4 +748,48 @@ module.exports = {
        }
      );
    },
+   Reservation_Filter:(body,callBack)=>{
+    var merchant_token = body.api_token;   
+    var query = "CALL merchant_view_reservation_filter(?,?,?,@p)";
+    pool.query(
+      query,
+      [merchant_token,body.type,body.fkey],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  Cancel_Reservation:(body,callBack)=>{
+    var merchant_token = body.api_token;   
+    var query = "CALL Cancel_Merchant_Status(?,?,@p)";
+    pool.query(
+      query,
+      [merchant_token,body.id],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  Cancel_Topup_Payment:(body,callBack)=>{
+    var query = "CALL Cancel_Topup_Payment(?,?,?,@p)";
+    pool.query(
+      query,
+      [body.api_token,body.payid,body.comment],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
 }

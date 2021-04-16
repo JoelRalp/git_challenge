@@ -20,6 +20,19 @@ const {View_voucherfavourite} = require("./User.controller");
 const {add_Redeem} = require("./User.controller");
 const {check_Redeem} = require("./User.controller");
 const {view_Category} = require("./User.controller");
+const {view_Subcategory} = require("./User.controller");
+const {view_Product}=require("./User.controller");
+const {view_Newpost}=require("./User.controller");
+const {update_Profile}=require("./User.controller");
+const {transaction_History}=require("./User.controller");
+const {add_Feedback}=require("./User.controller");
+const {view_Terms}=require("./User.controller");
+const {view_Privacy}=require("./User.controller");
+const {user_Logout}=require("./User.controller");
+const {current_Level}=require("./User.controller");
+const {view_TierBenefits}=require("./User.controller");
+const {view_Tier}=require("./User.controller");
+const {view_Notification}=require("./User.controller");
 
 const router = require("express").Router();
 
@@ -45,6 +58,19 @@ router.post('/viewVoucherFavourite',View_voucherfavourite);
 router.post('/addRedeem',add_Redeem);
 router.post('/checkRedeem',check_Redeem);
 router.post('/viewCategory',view_Category);
+router.post('/viewSubcategory',view_Subcategory);
+router.post('/viewProduct',view_Product);
+router.post('/viewNewpost',view_Newpost);
+router.post('/updateProfile',update_Profile);
+router.post('/transactionHistory',transaction_History);
+router.post('/addFeedback',add_Feedback);
+router.post('/viewTerms',view_Terms);
+router.post('/viewPrivacy',view_Privacy);
+router.post('/logout',user_Logout);
+router.post('/currentLevel',current_Level);
+router.post('/viewTierBenefits',view_TierBenefits);
+router.post('/viewTier',view_Tier);
+router.post('/viewNotification',view_Notification);
 
 module.exports = router;
 

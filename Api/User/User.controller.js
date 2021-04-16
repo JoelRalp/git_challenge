@@ -1,7 +1,6 @@
 
 const sendSms = require("../Mqtt/twilio");
 var moment = require('moment-timezone');
-var async = require('async');
 const { makeid, refresh } = require("../Mqtt/server");
 const{ Phone_login } = require("./User.service");
 const{ Verified_otp } = require("./User.service");
@@ -28,9 +27,18 @@ const { Category_View } = require("./User.service");
 const { Subcategory_View } = require("./User.service");
 const { Product_View } = require("./User.service");
 const { COMMON } = require("./User.service");
+const { Newpost_View } = require("./User.service");
+const { Profile_Update }=require("./User.service");
+const{History_Transaction}=require("./User.service");
+const{Feedback_Add}=require("./User.service");
+const{Terms_View}=require("./User.service");
+const{Privacy_View}=require("./User.service");
+const{Logout_User}=require("./User.service");
+const{Level_Current}=require("./User.service");
+const{TierBenefits_View}=require("./User.service");
+const{Tier_View}=require("./User.service");
+const{Notification_View}=require("./User.service");
 
-
-const { sign } = require("jsonwebtoken");
 const { json } = require("body-parser");
 
 module.exports = {
@@ -50,7 +58,7 @@ module.exports = {
 		}else{
 			
 			var json = JSON.parse(result[0].rescode);
-			if(!json.name){
+			if(json.phone_verified == 0){
 				sendSms(sphone,otp);
 				var data = {"status":"failure",'statuscode':'3',"msg":'Phone number not registered',"data":JSON.parse(result[0].rescode)};
   			}else{
@@ -378,7 +386,7 @@ module.exports = {
 
 	View_voucher:(req,res)=>{
 
-		if(!req.body.api_token){
+		if(!req.body.api_token || !req.body.type){
 			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
 		}
 
@@ -460,12 +468,23 @@ module.exports = {
 			if(err){
 				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
 			}else{
-				if(result[0].rescode=='1'){
-					var data = {"status":"success",'statuscode':'1',"data":'Redeem insert successfully'};
-				}else if(result[0].rescode=='3'){
+				if(result[0].rescode=='3'){
 					var data = {"status":"failure",'statuscode':'3',"data":'Already processing in voucher'};
 				}else if(result[0].rescode=='4'){
 					var data = {"status":"failure",'statuscode':'4',"data":'Invalid api token'};
+				}else {
+					let	json = {
+						id:result[0].id,
+						vouID:result[0].vouID,
+						user_id:result[0].user_id,
+						qr_code:result[0].qr_code,
+						max_time:moment(result[0].max_time).format("YYYY-MM-DD HH:mm:ss"),
+						vTime:result[0].vTime,
+						reStatus:result[0].reStatus,
+						created_at:result[0].created_at,
+					}
+
+					var data = {"status":"success",'statuscode':'1',"Msg":'Redeem insert successfully',"data":json};
 				}
 			}
 			return res.status(200).json(data);
@@ -485,7 +504,17 @@ module.exports = {
 				if(result[0].rescode=='3'){
 					var data = {"status":"failure",'statuscode':'3',"data":'Timeout please try again later'};
 				}else {
-					var data = {"status":"success",'statuscode':'1',"data":result,"DateTime":CurrentDate};
+					let	json = {
+						id:result[0].id,
+						vouID:result[0].vouID,
+						user_id:result[0].user_id,
+						qr_code:result[0].qr_code,
+						max_time:moment(result[0].max_time).format("YYYY-MM-DD HH:mm:ss"),
+						vTime:result[0].vTime,
+						reStatus:result[0].reStatus,
+						created_at:result[0].created_at,
+					}
+					var data = {"status":"success",'statuscode':'1',"data":json,"DateTime":CurrentDate};
 				}
 			}
 			return res.status(200).json(data);
@@ -529,55 +558,288 @@ module.exports = {
 
 	view_Product: (req,res)=>{
 
-	let total_json = [];
-	let vimage=[];
+	//let total_json = [];
+	//let vimage=[];
 		if(!req.body.cateid || !req.body.subcateid){
 			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
 		}
 		const body = req.body;
 
-	async=>Product_View(body,(err,result)=>{
+		Product_View(body,(err,result)=>{
 			if(err){
 				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
 			}else{
 				if(result[0].rescode=='2'){
 					var data = {"status":"failure",'statuscode':'2',"data":'No data found'};
 				} else {
-						result.forEach(element => { 
+						// result.forEach(element => { 
 
-						let query1 = "select * from new_product_image where productId = " + "'" + element.id + "' " + "and status = '1' order by id ASC" ;
-						body.query = query1;
-						//var vimage = [];
-						COMMON(body, (err, results) => {
-							if(results){
-								 vimage=results;
-							}else{
-								 vimage=[];
-							}
-							console.log(vimage);	
-						});
-						console.log(vimage);
-						let	json = {
-								id:element.id,
-								cateName:element.cateName,
-								subcateName:element.subcateName,
-								productName:element.productName,
-								sku:element.sku,
-								cost:element.cost,
-								sellingPrice:element.sellingPrice,
-								type:element.type,
-								status:element.status,
-								image:newimgae,
-							}
-							total_json.push(json);
+						// let query1 = "select * from new_product_image where productId = " + "'" + element.id + "' " + "and status = '1' order by id ASC" ;
+						// body.query = query1;
+						// //var vimage = [];
+						// COMMON(body, (err, results) => {
+						// 	if(results){
+						// 		 vimage=results;
+						// 	}else{
+						// 		 vimage=[];
+						// 	}
+						// 	console.log(vimage);	
+						// });
+						// console.log(vimage);
+						// let	json = {
+						// 		id:element.id,
+						// 		cateName:element.cateName,
+						// 		subcateName:element.subcateName,
+						// 		productName:element.productName,
+						// 		sku:element.sku,
+						// 		cost:element.cost,
+						// 		sellingPrice:element.sellingPrice,
+						// 		type:element.type,
+						// 		status:element.status,
+						// 		image:newimgae,
+						// 	}
+						// 	total_json.push(json);
 						
-						});
-						//console.log(newArr);
-					var data = {"status":"success",'statuscode':'1',"data":total_json};
+						// });
+						// //console.log(newArr);
+					var data = {"status":"success",'statuscode':'1',"data":result};
 				}
 			}
 			return res.status(200).json(data);
 		});
 	},
 
+	view_Newpost:(req,res)=>{
+		const body = req.body;
+		Newpost_View(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}else{
+				if(result[0].rescode=='2'){
+					var data = {"status":"failure",'statuscode':'2',"data":'No data found'};
+				} else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			}
+			return res.status(200).json(data);
+		});
+	},
+	update_Profile:(req,res)=>{
+
+		if(!req.body.api_token || !req.body.name || !req.body.phone || !req.body.email || !req.body.dob){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+
+		const body = req.body;
+		Profile_Update(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}else{
+				if(result[0].rescode=='1'){
+					var data = {"status":"success",'statuscode':'1',"data":'Profile Updated successfully'};
+				}else if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'Email already exists'};
+				}else if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Phone already exists'};
+				}else if(result[0].rescode=='5'){
+					var data = {"status":"failure",'statuscode':'5',"data":'Invalid api token'};
+				}
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	transaction_History:(req,res)=>{
+		if(!req.body.api_token || !req.body.type){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+		const body = req.body;
+		History_Transaction(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+
+				if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'No data found'};
+				}else if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Invalid api token'};
+				}else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'3',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	add_Feedback:(req,res)=>{
+		if(!req.body.api_token || !req.body.title || !req.body.description || !req.body.email){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+		const body = req.body;
+		var CurrentDate  = moment().tz("Asia/Kuala_Lumpur").format("YYYY-MM-DD HH:mm:ss");
+		//console.log(CurrentDate);
+		Feedback_Add(body,CurrentDate,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}else{
+				if(result[0].rescode=='1'){
+					var data = {"status":"success",'statuscode':'1',"data":'Feed back inserted successfully'};
+				}else if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'Invalid api token'};
+				}
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	view_Terms:(req,res)=>{
+		const body = req.body;
+		Terms_View(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}else{
+				if(result[0].rescode=='2'){
+					var data = {"status":"failure",'statuscode':'2',"data":'No data found'};
+				}else{
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	view_Privacy:(req,res)=>{
+		const body = req.body;
+		Privacy_View(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}else{
+				if(result[0].rescode=='2'){
+					var data = {"status":"failure",'statuscode':'2',"data":'No data found'};
+				}else{
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	user_Logout:(req,res)=>{
+
+		if(!req.body.api_token  || !req.body.login_type  ){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+
+		const body = req.body;
+		Logout_User(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}else{
+				if(result[0].rescode=='1'){
+					var data = {"status":"success",'statuscode':'1',"data":'Logout successfully'};
+				}else if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'Invalid api token'};
+				}
+			}
+			return res.status(200).json(data);
+		});	
+	},
+
+	current_Level:(req,res)=>{
+
+		if(!req.body.api_token){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+
+		const body = req.body;
+		Level_Current(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+
+				if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Invalid api token'};
+				} else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'3',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+		});
+	},
+	view_TierBenefits:(req,res)=>{
+		if(!req.body.api_token){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+	  const body = req.body;
+	  TierBenefits_View(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+
+				if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Invalid api token'};
+				} else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'3',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	view_Tier:(req,res)=>{
+		if(!req.body.api_token){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+		const body = req.body;
+		Tier_View(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+
+				if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Invalid api token'};
+				} else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'3',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	view_Notification:(req,res)=>{
+
+		if(!req.body.api_token){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+		const body = req.body;
+		var CurrentDate  = moment().tz("Asia/Kuala_Lumpur").format("YYYY-MM-DD HH:mm:ss");
+		Notification_View(body,CurrentDate,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+
+				if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Invalid api token'};
+				} else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'3',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+		});
+	},
 };

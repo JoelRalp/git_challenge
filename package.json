@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "debug": "node --debug-brk app.js"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +16,7 @@
     "aws-sdk": "^2.858.0",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
+    "debug": "^4.3.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",

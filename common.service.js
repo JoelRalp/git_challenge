@@ -6,7 +6,7 @@
   }
   var reqallfeild = {
     status: "failure",
-    statuscode: "2",
+    statuscode: "5",
     data: "Required all feilds."
   }
   var  fatal_error = {

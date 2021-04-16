@@ -1,4 +1,4 @@
-
+const pool = require("../config/database");
  var apierrmsg = {
     status: "failure",
     statuscode: "4",
@@ -27,7 +27,7 @@
   var insfailure = {
     status: "failure",
     statuscode: "2",
-    msg: ""
+    msg: "djsfbkrwfuovyu"
   }
   var resfailure = {
     status: "failure",
@@ -39,6 +39,28 @@
     statuscode: "3",
     data: "No data found"
   }
+  let rejson = {
+    status: "failure",
+    statuscode: "3",
+    data: "No data found"
+  }
+
+  Verify_Employee = (body,callBack) => {
+     
+    pool.query(
+      "CALL Verify_Employee(?,@a);",
+      [body.api_token],
+      (error, results, fields) => {
+         
+        if (error) {    
+          callBack(error);
+        }
+        else{
+          return callBack(null, results);
+        }
+      }
+    );
+  }
 module.exports = {
     apierrmsg,
     fatal_error,
@@ -47,5 +69,6 @@ module.exports = {
     inssucess,
     insfailure,
     resfailure,
-    nodatafound
+    nodatafound,
+    Verify_Employee
 }

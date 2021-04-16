@@ -22,7 +22,9 @@ module.exports = {
     },
     ADD_VOUCHER: (bodynew,imgnew,callBack) => {
       var body = bodynew.body;
+     console.log(bodynew);
       let cateIDnew = body.cateID;
+      let link = body.link;
       let discount_typenew = body.discount_type;
       let voucher_codenew = body.voucher_code;
       let titlenew = body.title;
@@ -63,12 +65,19 @@ module.exports = {
       let end_timenew = body.end_time;
       let expired_datenew = body.expired_date;
       let expired_timenew = body.expired_time;
+      let redeemname = body.redeem_name;
+      let redeemvalue = body.redeem_value;
       let vStatusnew = body.vStatus;
+      let Subtitle = body.sub_title;
+     
       let qrcodenew = null;
       let barcodenew = null;
+      
        if(!cateIDnew ){cateIDnew =null}
       else if(! discount_typenew ){discount_typenew = null; }
       else if(! voucher_codenew ){ voucher_codenew = null;}
+      else if(! redeemname ){redeemname = null; }
+      else if(! redeemvalue ){ redeemvalue = null;}
       else if(! titlenew ){titlenew = null;}
       else if(! descriptionnew ){descriptionnew = null;}
       else if(! photonew){photonew = null;}  
@@ -107,14 +116,16 @@ module.exports = {
       else if(! expired_datenew ){expired_datenew = null;}
       else if(! expired_timenew ){expired_timenew = null;}
       else if(! vStatusnew ){vStatusnew = null;}
-
-
-      var query = "CALL Add_Voucher(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@p);" ;
+      else if(! link ){link = null;}
+      else if(! subtitle ){subtitle = null;}
+     
+      var query = "CALL Add_Voucher(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@p);" ;
     
        pool.query(  
         query ,        
-        [body.api_token,
-           cateIDnew,
+        [ 
+          body.api_token,
+          cateIDnew,
           discount_typenew,
           voucher_codenew,
           titlenew,
@@ -151,11 +162,15 @@ module.exports = {
           limit_per_valuenew,
           start_datenew,start_timenew,
           end_datenew,end_timenew,
-          expired_datenew,expired_timenew,
-          body.link,
+          expired_datenew,
+          expired_timenew,        
+          redeemname,
+          redeemvalue,
+          link,
           vStatusnew,
-          qrcodenew,
-          barcodenew],  
+          Subtitle,
+         
+        ],  
          (error, results, fields) => {
           
            if (error) {    
@@ -232,7 +247,7 @@ module.exports = {
        );
      },
    EDIT_VOUCHER: (bodynew,imgnew, callBack) => {
-    var body = bodynew.body;
+    var body = bodynew;
     let api = body.api_token;
     let id = body.id;
     let cateIDnew = body.cateID;
@@ -277,15 +292,66 @@ module.exports = {
     let expired_datenew = body.expired_date;
     let expired_timenew = body.expired_time;
     let vStatusnew = body.vStatus;
+    let redeemname = body.redeem_name;
+    let redeemvalue = body.redeem_value;
+    let link = body.link;
+    let Subtitle = body.sub_title;
     let qrcodenew = null;
     let barcodenew = null;
     
-    var query = "CALL Edit_Voucher(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@p);";
+    var query = "CALL Edit_Voucher(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,@p);";
      pool.query(  
       query ,
-      [api,id,cateIDnew,discount_typenew,voucher_codenew,titlenew,descriptionnew,photonew,addDatenew,color_codenew,typesnew,types_valuenew,apply_tonew,apply_to_valuenew,countrynew,country_valuenew,ship_ratenew,ship_rate_valuenew,cust_buynew,cust_buy_value1new,cust_buy_value2new,cust_getnew,cust_get_value1new,cust_get_value2new,at_discountnew,at_discount_valuenew,set_min_ordernew,set_min_order_valuenew,min_reqnew,min_req_valuenew,cus_elgnew,cus_elg_valuenew,usage_limitnew,usage_limit_valuenew,total_vou_countnew,limt_pernew,limit_per_valuenew,start_datenew,start_timenew,end_datenew,end_timenew,expired_datenew,expired_timenew,vStatusnew],   
+      [ 
+        body.api_token,
+        cateIDnew,
+        discount_typenew,
+        voucher_codenew,
+        titlenew,
+        descriptionnew,
+        photonew,
+        addDatenew,
+        color_codenew,
+        typesnew,
+        types_valuenew,
+        apply_tonew,
+        apply_to_valuenew,
+        countrynew,
+        country_valuenew,
+        ship_ratenew,
+        ship_rate_valuenew,
+        cust_buynew,
+        cust_buy_value1new,
+        cust_buy_value2new,
+        cust_getnew,
+        cust_get_value1new,
+        cust_get_value2new,
+        at_discountnew,
+        at_discount_valuenew,
+        set_min_ordernew,
+        set_min_order_valuenew,
+        min_reqnew,
+        min_req_valuenew,
+        cus_elgnew,
+        cus_elg_valuenew,
+        usage_limitnew,
+        usage_limit_valuenew,
+        total_vou_countnew,
+        limt_pernew,
+        limit_per_valuenew,
+        start_datenew,start_timenew,
+        end_datenew,end_timenew,
+        expired_datenew,
+        expired_timenew,        
+        redeemname,
+        redeemvalue,
+        link,
+        vStatusnew,
+        Subtitle,
+        id
+      ], 
        (error, results, fields) => {
-        
+        console.log(results);
          if (error) {    
            callBack(error);
          }

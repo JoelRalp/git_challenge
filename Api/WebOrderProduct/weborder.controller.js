@@ -4,94 +4,109 @@ const { VIEW_WEBORDER,ADD_WEBORDER_PRODUCT,GET_WEBORDER_PRODUCT_ID,DELETE_WEBORD
 const { makeid, refresh } = require("../Mqtt/server");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
 const s3w = require("../Aws.s3");
-const { query } = require("express");
-
+const { query, json } = require("express");
+const ASYNC = require('async');
+const { Verify_Employee } = require("../common.service");
 module.exports = {
   viewWebOrder: (req, res) => {
-    let key = "";
-    let WebOrderProduct = [];
-    let WebOrderCategoryList = [];
-    let WebOrderCategoryListLength;
-    let i = 0;
-    let j = 0;
-    let AddonLenght = "";
-    let Addon = [];
-    var total_json = [];
+
     const body = req.body;
     let keys = "b";
     if (!req.body.api_token) { reqallfeild }
-   
-    VIEW_WEBORDER(body, keys, async(err, results) => {
+
+    VIEW_WEBORDER(body, keys, async (err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
       else {
-        var bar = new Promise((resolve, reject) => {
-          results.forEach(element => {
-            key = element.id;
-            WebOrderProduct.push(element);
-            var query = "Select wv.* from web_order_product_category_list as wv inner join web_order_product as wp on wv.webID = wp.id where wv.webID ="
-              + " '" + key + "'";
-            body.query = query;
-            COMMON(body, async(err, results) => {
-              if (err) { fatal_error.data = err; return res.json(fatal_error); }
-              if(results){
-                if(results.length > 0){
-                  if (results[0].err_id == "-1") { return res.json(apierrmsg); }
-                  else {
-                    WebOrderCategoryListLength = results.length;
-                  results.forEach(element => {
-                     
-                          if (element.webID == key) {
-                            i++;
-                           WebOrderCategoryList.push(element)
-                          }
-                          if (i == WebOrderCategoryListLength) {
-                            var query = "Select wv.* from add_on_list as wv inner join web_order_product as wp on wv.addonID = wp.id where wv.addonID ="
-                              + " '" + key + "'";
-                            body.query = query
-                            COMMON(body, async(err, results) => {
-                              if (err) { fatal_error.data = err; return res.json(fatal_error); }
-                              if(results){
-                                if(results.length>0){
-                                  if (results[0].err_id == "-1") { return res.json(apierrmsg); }
-                                  else {
-                                    AddonLenght = results.length;
-                                  results.forEach(element => {
-                                      j++;
-                                      Addon.push(element)
-                                      if (AddonLenght == j)
-                                      {                                   
-                                        let json = {
-                                          WebOrderPro: WebOrderProduct,
-                                          WebOrderCateg: WebOrderCategoryList,
-                                          Addons: Addon
-                                        }
-                                       resolve(json);
-                                      }
-                                    });                              
-                                  }
-                                }
-                              }     
-                            });
-                          }
-                    });
-                
+
+        let product = [];
+        Verify_Employee(body, async (err, response) => {
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          else if (response) {
+            if (response.err_id) {
+              return response.status(200).json(apierrmsg)
+            }
+            else {
+              let query = "Select * from web_order_product as wo where (wo.status = '1' or wo.status = '0') order by wo.id DESC";
+              body.query = query;
+              COMMON(body, (err, result) => {
+                if (err) { fatal_error.data = err; return res.json(fatal_error); }
+                if (result) {
+                  let strres = JSON.stringify(result);
+                  let jsonres = JSON.parse(strres);
+
+                  if (result.length > 0) {
+                    product.push(jsonres);
+
                   }
-               
+                  else { return res.status(200).json(nodatafound) }
+                  let total_json = [];
+                  ASYNC.each(product[0], function (element, callback) {
+
+                    let resjson = {
+                      "id": element.id,
+                      "name": element.name,
+                      "image": element.image,
+                      "description": element.description,
+                      "status": element.status
+
+                    };
+
+                    let query = "Select wl.id,wl.price,wc.name from web_order_product_category_list as wl inner join web_order_product_category as wc on wl.webcateID = wc.id where wl.webID  = ' " + element.id + "'";
+                    let query2 = "Select * from add_on_list where addonID = ' " + element.id + "'";
+                    let query3 = "Select categoryname from category where id = ' " + element.id + "'";
+                    let loop_key = ['WebOrderVariation', 'WebOrderAddon', 'Category']
+                    loop_key.forEach(element1 => {
+                      if (element1 == "WebOrderVariation") {
+                        body.query = query;
+                      }
+                      else if (element1 == "WebOrderAddon") {
+                        body.query = query2;
+                      }
+                      else {
+                        body.query = query3;
+                      }
+
+                      COMMON(body, (err, result) => {
+                        let vcate = "";
+
+                        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+                        if (result) {
+
+                          if (element1 == "WebOrderVariation") {
+                            resjson.category = result;
+                          }
+                          else if (element1 == "WebOrderAddon") {
+                            resjson.addno = result;
+                          }
+                          else if (element1 == "Category") {
+                            if (result.length > 0) {
+                              vcate = result[0].categoryname;
+                              resjson.cateID = vcate;
+                            }
+                            else {
+                              vcate = "";
+                              resjson.cateID = vcate;
+                            }
+                            total_json.push(resjson);
+                            callback();
+                          }
+                        }
+                      });
+                    });
+                  }, function (err) {
+                    if (err) { fatal_error.data = err; return res.json(fatal_error); }
+                    else{ sucess.data = total_json;return res.json(sucess);}});
+
                 }
-              }
-              
-            });
-          });
-      });
-      
-      bar.then((response) => {
-      
-                    sucess.data = response; 
-                    return res.json(sucess);
-                  
-      });
-        
+
+
+              });
+            }
+          }
+
+        });
+
       }
     });
 

@@ -2,12 +2,12 @@ const { Login_Merchant } = require("./Merchant.service");
 var admin = require("firebase-admin");
 const FCM = require('fcm-node')
 // const firebase = require('firebase');
-const { Point_Payment } = require("./Merchant.service");
+const { Point_Payment,Cancel_Reservation,Cancel_Topup_Payment } = require("./Merchant.service");
 const { Type_Payment } = require("./Merchant.service");
 const { Voucher_Payment } = require("./Merchant.service");
-const { History_Payment } = require("./Merchant.service");
+const { History_Payment,History_Payment_Filter } = require("./Merchant.service");
 const { Historysearch_Payment,Change_Password_MERCHANT } = require("./Merchant.service");
-const { Payment_cancel } = require("./Merchant.service");
+const { Payment_cancel,Reservation_Filter } = require("./Merchant.service");
 const { Merchant_add } = require("./Merchant.service");
 const { makeid, refresh } = require("../Mqtt/server");
 const { Merchant_view,Table_Product ,Table_Checkout,Merchant_Update_Pin} = require("./Merchant.service");
@@ -32,7 +32,7 @@ Merchant_login = (req, res) => {
 	const body = req.body;
 	//console.log("in");
 	Login_Merchant(body, (err, result) => {
-		//console.log(body.password);
+		if(!body.merchantid || !body.password){return res.status(500).json(reqallfeild)}
 
 		if (err) {
 			return res.status(500).json({
@@ -130,17 +130,18 @@ Payment_Voucher = (req, res) => {
 };
 
 Payment_History = (req, res) => {
-	if (req.body.api_token == '') {
-		return res.status(200).json({ status: "failure", statuscode: "3", data: "Required all field" })
+	if (!req.body.api_token || !req.body.type) {
+		return res.status(200).json(reqallfeild)
 	}
 	const body = req.body;
 	History_Payment(body, (err, result) => {
 		if (result[0].rescode == '2') {
-			var data = { "status": "failure", 'statuscode': '2', "data": 'Invalid merchant api token' };
+			var data = apierrmsg;
 		} else if (result[0].rescode == '4') {
-			var data = { "status": "failure", 'statuscode': '4', "data": 'No data found' };
+			var data = nodatafound;
 		} else {
-			var data = { "status": "success", 'statuscode': '1', "data": result };
+			sucess.data = result;
+			var data = sucess;
 		}
 		return res.status(200).json(data);
 	});
@@ -162,24 +163,7 @@ Payment_Historysearch = (req, res) => {
 		return res.status(200).json(data);
 	});
 };
-cancel_Payment = (req, res) => {
 
-	if (req.body.api_token == '' || req.body.paymentid == '') {
-		return res.status(200).json({ status: "failure", statuscode: "4", data: "Required all field" })
-	}
-
-	const body = req.body;
-	Payment_cancel(body, (err, result) => {
-		if (result[0].rescode == '1') {
-			var data = { "status": "success", 'statuscode': '1', "data": 'Payment cancelled successfully' };
-		} else if (result[0].rescode == '2') {
-			var data = { "status": "failure", 'statuscode': '2', "data": 'Invalid merchant code' };
-		} else if (result[0].rescode == '3') {
-			var data = { "status": "failure", 'statuscode': '3', "data": 'Invalid payment id' };
-		}
-		return res.status(200).json(data);
-	});
-};
 
 add_Merchant = (req, res) => {
 
@@ -484,18 +468,17 @@ viewMobileCategory = (req, res) => {
 	if (!req.body.api_token) { apierrmsg }
 	View_Mobile_Category_Mobile(body, (err, results) => {
 		if (err) { fatal_error.data = err; return res.json(fatal_error); }
-		else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
+		else if (results[0].rescode == "-1") { return res.json(apierrmsg); }
 		else { sucess.data = results; return res.json(sucess); }
 	});
 };
 viewMobileMerchantProductStockStatus = (req, res) => {
+	console.log("in");
 	const body = req.body;
-	if (!req.body.api_token || !req.body.productid || !req.body.status) { reqallfeild }
-	View_Mobile_Merchant_Product_Update_Stock(body, (err, results) => {
+	if (!req.body.api_token) { reqallfeild }
+	View_Mobile_Merchant_Product_Stock(body, (err, results) => {
 		if (err) { fatal_error.data = err; return res.json(fatal_error); }
 		else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
-		else if (results[0].err_id == "-2") { return res.json(nodatafound); }
-		else if (results[0].err_id == "1") { inssucess.msg = "Stock Updated."; return res.json(inssucess); }
 		else { sucess.data = results; return res.json(sucess); }
 	});
 };
@@ -525,49 +508,66 @@ webCategoryProductMobile = async (req, res) => {
 	let Webstatus;
 	let WebOrderVariation;
 	let Category;
+	let callbackkey = "";
 	let i = 0;
 	var keyvalue = ["Merchant", "WebOrderProduct", "Webstatus", "WebOrderVariation", "Category"]
 	if (!req.body.api_token) { return res.json(reqallfeild) }
 	else if (!req.body.cate_id) { return res.json(reqallfeild) };
 	try {
-		return new Promise(resolve => {
-			keyvalue.forEach(element => {
-
-				View_Category_Product_Mobile(body, keyvalue[j], (err, results) => {
-
-					if (err) { fatal_error.data = err; return res.json(fatal_error); }
-					if (results) {
-
-
-						if (element == "Merchant") {
-							Merchant = results;
-							resolve(Merchant);
-						}
-						if (element == "WebOrderProduct") {
-							WebOrderProduct = results;
-							resolve(WebOrderProduct);
-						}
-						if (element == "Webstatus") {
-							Webstatus == results;
-							resolve(Webstatus);
-						}
-						if (element == "WebOrderVariation") {
-							WebOrderVariation = results;
-							resolve(WebOrderVariation);
-						}
-						if (element == "Category") {
-							Category = results;
-							resolve(Category);
-						}
+		let json = {};
+		ASYNC.each(keyvalue, function(element, callback) 
+		{	
+			
+			View_Category_Product_Mobile(body, element, (err, results) => {
+				callbackkey = element;
+			if (err) { fatal_error.data = err; return res.json(fatal_error); }
+			if (results) {
 
 
+				if (element == "Merchant") {
+					Merchant = results;
+					
+				}
+				if (element == "WebOrderProduct") {
+					WebOrderProduct = results;
+					
+				}
+				if (element == "Webstatus") {
+					Webstatus = results;
+					
+				}
+				if (element == "WebOrderVariation") {
+					WebOrderVariation = results;
+					
+				}
+				if (element == "Category") {
+					Category = results;
+					
+				}
+				 json = {
+					"Merchant":Merchant,
+					"WebOrderProduct":WebOrderProduct,
+					"Webstatus":Webstatus,
+					"WebOrderVariation" :WebOrderVariation,
+					"Category" :Category
+				}
+
+				callback();
 
 
-					}
-				});
-
-			});
+			}
+		}); 
+	}, function(err) {
+		
+			if( err ) {
+			 
+			  console.log('A file failed to process');
+			} else {
+			 
+				sucess.data = json; return res.json(sucess);
+			}
 		});
+		
 
 	}
 	catch (e) {
@@ -897,7 +897,7 @@ DeleteProduct = (req,res) => {
 		else { return res.json(nodatafound); }
 	});
 
-};//Confirm_Order
+};
 ConfirmOrder = (req,res) => {
 	const body = req.body;
 
@@ -1063,12 +1063,120 @@ console.log(results);
 		else if (results.length > 0) {
 			
 			if (results[0].err_id == "-1") { return res.json(apierrmsg); }
-			else if (results[0].err_id == "-2") {  insfailure.msg = "Invalid Pin"; return res.json(insfailure); }
+			else if (results[0].err_id == "-2") {  insfailure.msg = "Invalid Password"; return res.json(insfailure); }
 			else {  inssucess.msg = "Password changed sucessfully!!!!"; return res.json(inssucess); }
 		}
 		else { return res.json(nodatafound); }
-	});//
+	});//History_Payment_Filter
 
+};
+Fiter_History = (req,res) => {
+	const body = req.body;
+
+	if (!req.body.api_token) { return res.json(apierrmsg) }
+	if (!req.body.type) { return res.json(reqallfeild) }
+	if (!req.body.fkey) { return res.json(reqallfeild) }
+	History_Payment_Filter(body, (err, results) => {
+console.log(results);
+		if (err) { fatal_error.data = err; return res.json(fatal_error); }
+		else if (results.length > 0) {
+			
+			if (results[0].err_id == "-1") { return res.json(apierrmsg); }
+			else if (results[0].err_id == "-2") {   return res.json(nodatafound); }
+			else {  sucess.data = results; return res.json(sucess); }
+		}
+		else { return res.json(nodatafound); }
+	});//History_Payment_Filter
+
+};
+Fiter_Reservation = (req,res) => {
+	const body = req.body;
+
+	if (!req.body.api_token) { return res.json(apierrmsg) }
+	if (!req.body.type) { return res.json(reqallfeild) }
+	if (!req.body.fkey) { return res.json(reqallfeild) }
+	Reservation_Filter(body, (err, results) => {
+console.log(results);
+		if (err) { fatal_error.data = err; return res.json(fatal_error); }
+		else if (results.length > 0) {
+			
+			if (results[0].err_id == "-1") { return res.json(apierrmsg); }
+			else if (results[0].err_id == "-2") {   return res.json(nodatafound); }
+			else {  sucess.data = results; return res.json(sucess); }
+		}
+		else { return res.json(nodatafound); }
+	});
+
+};
+Cancelreservation = (req,res) => {
+	const body = req.body;
+
+	if (!req.body.api_token) { return res.json(apierrmsg) }
+	if (!req.body.id) { return res.json(reqallfeild) }
+	Cancel_Reservation(body, (err, results) => {
+console.log(results);
+		if (err) { fatal_error.data = err; return res.json(fatal_error); }
+		else if (results.length > 0) {
+			
+			if (results[0].err_id == "-1") { return res.json(apierrmsg); }
+			else if (results[0].err_id == "-2") {   return res.json(nodatafound); }
+			else if(results[0].err_id == "1") {  }
+		}
+		else { return res.json(nodatafound); }
+	});
+
+};
+cancel_Payment = (req, res) => {
+
+	if (req.body.api_token == '' || req.body.paymentid == '') {
+		return res.status(200).json(reqallfeild)
+	}
+
+	const body = req.body;
+	Payment_cancel(body, (err, result) => {
+		if (result[0].rescode == '1') {
+			var data =  sucess.data = "Payment cancelled"; return res.json(sucess);;
+		} else if (result[0].rescode == '2') {
+			var data =  apierrmsg ;
+		} else if (result[0].rescode == '3') {
+			insfailure.msg = "Ivalid payment id"
+			var data = insfailure
+		}
+		return res.status(200).json(data);
+	});
+};
+Cancel_Topup = (req, res) => {
+
+	if (req.body.api_token == '' || req.body.paymentid == '') {
+		return res.status(200).json(reqallfeild)
+	}
+
+	const body = req.body;
+	Cancel_Topup_Payment(body, (err, result) => {
+		if (result[0].err_id == '0.5') {
+			var data =  sucess.data = "Payment cancelled"; return res.json(sucess);;
+		} else if (result[0].err_id == '-1') {
+			var data =  apierrmsg ;
+		} else if (result[0].err_id == '-2') {
+			insfailure.msg = "Invalid payment id";
+			var data =  insfailure ;
+		}  else if (result[0].err_id == '-3') {
+			nodatafound.data = "User has insufficient balance to refund the top up";
+			var data =  nodatafound ;
+		}
+		else  {
+			let json = {
+				title:"Cancelled",
+				message:"Your last topup cancelled",
+				token:result[0].err_id
+			}
+			this.PushNotification(json, (err, results) => {
+
+
+			});
+		}
+		return res.status(200).json(data);
+	});
 };
 function get_order_product(bookid, orderid,callBack) {
 	let query = "Select * from web_order_placed_addon where bookid = '" + bookid + "'" + "and weborderplaceID = '" + orderid + "'" + "and type = 'product' and status = '2' or status = '3';"
@@ -1160,6 +1268,8 @@ module.exports = {
 	ViewMerchantReservation,
 	ViewMerchantProfile,
 	UpdatePinCode,
-	ChangeMerPassword
-
+	ChangeMerPassword,
+	Fiter_History,
+	Fiter_Reservation,
+	Cancelreservation
 };
