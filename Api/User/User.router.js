@@ -33,6 +33,8 @@ const {current_Level}=require("./User.controller");
 const {view_TierBenefits}=require("./User.controller");
 const {view_Tier}=require("./User.controller");
 const {view_Notification}=require("./User.controller");
+const {view_FeedbackCategory}=require("./User.controller");
+const {add_topup}=require("./User.controller");
 
 const router = require("express").Router();
 
@@ -71,6 +73,8 @@ router.post('/currentLevel',current_Level);
 router.post('/viewTierBenefits',view_TierBenefits);
 router.post('/viewTier',view_Tier);
 router.post('/viewNotification',view_Notification);
+router.post('/viewFeedbackCategory',view_FeedbackCategory);
+router.post('/topup',add_topup);
 
 module.exports = router;
 

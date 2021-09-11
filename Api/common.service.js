@@ -61,6 +61,22 @@ const pool = require("../config/database");
       }
     );
   }
+  COMMON = (body,callBack) => {
+     
+    pool.query(
+      body.query,
+      [body.api_token],
+      (error, results, fields) => {
+         
+        if (error) {    
+          callBack(error);
+        }
+        else{
+          return callBack(null, results);
+        }
+      }
+    );
+  }
 module.exports = {
     apierrmsg,
     fatal_error,
@@ -70,5 +86,6 @@ module.exports = {
     insfailure,
     resfailure,
     nodatafound,
-    Verify_Employee
+    Verify_Employee,
+    COMMON
 }

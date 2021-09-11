@@ -187,15 +187,19 @@ module.exports = {
          }
        );
      },
-     ADD_POINTS: (body,callBack) => {
+     ADD_POINTS: (body,tump_path,photo_path,callBack) => {
+      var member_icon = tump_path;
+      var member_card = photo_path;
         pool.query(
-          "CALL Add_Points(?,?,?,?,?,?,@a);",
+          "CALL Add_Points(?,?,?,?,?,?,?,?,@a);",
           [body.api_token,
            body.name,
            body.no_rm,
            body.rate_others,
            body.rate_ewallet,
-           body.points
+           body.points,
+           member_icon,
+           member_card
           ],
           (error, results, fields) => {
              
@@ -208,7 +212,7 @@ module.exports = {
           }
         );
       },
-      GET_POINTS_ID: (body, callBack) => {
+      GET_POINTS_ID: (body,callBack) => {
        let Api_token = body.api_token;
        let editid = body.editid;
        editid = parseInt(editid);
@@ -229,16 +233,22 @@ module.exports = {
           }
         );
       },
-     EDIT_POINTS: (body,callBack) => {
+     EDIT_POINTS: (body,tump_path,photo_path,callBack) => {
+      var pmember_icon = tump_path;
+      var pmember_card = photo_path;
+      //console.log(member_icon);
+      //console.log(member_card);
        pool.query(
-         "CALL Edit_Points(?,?,?,?,?,?,?,@a);",
+         "CALL Edit_Points(?,?,?,?,?,?,?,?,?,@a);",
          [body.api_token,
           body.name,
           body.no_rm,
           body.rate_others,
           body.rate_ewallet,
           body.points,
-          body.editid
+          body.editid,
+          pmember_icon,
+          pmember_card
          ],
          (error, results, fields) => {
             
@@ -252,4 +262,342 @@ module.exports = {
        );
      },
 
+     Points_delete:(data,callBack)=>{
+        var aapi_token=data.api_token;
+        var delete_id=data.delete_id;
+        var query = "CALL delete_point_admin(?,?,@p)";
+        pool.query(
+      query,
+      [aapi_token,delete_id],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+     },
+
+     Appcontent_add:(data,cdate,imagesarr,callBack)=>{
+      var aapi_token=data.api_token;
+      var mtype=data.type_id;
+      var cimage=imagesarr;
+      var ctitle=data.title;
+      var cdescription=data.description;
+      var CurrentDate=cdate;
+      var query = "CALL add_appcontent(?,?,?,?,?,?,@p)";
+      pool.query(
+      query,
+      [aapi_token,mtype,cimage,ctitle,cdescription,CurrentDate],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+     },
+
+     Appcontent_update:(data,cdate,imagesarr,callBack)=>{
+        var aapi_token=data.api_token;
+        var editid=data.editid;
+        var mtype=data.type_id;
+        var cimage=imagesarr;
+        var ctitle=data.title;
+        var cdescription=data.description;
+        var CurrentDate=cdate;
+        var query = "CALL edit_appcontent(?,?,?,?,?,?,?,@p)";
+        pool.query(
+        query,
+        [aapi_token,editid,mtype,cimage,ctitle,cdescription,CurrentDate],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Appcontent_delete:(data,callBack)=>{
+      var aapi_token=data.api_token;
+      var deleteid=data.deleteid;
+      var query = "CALL delete_appcontent(?,?,@p)";
+      pool.query(
+        query,
+        [aapi_token,deleteid],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Appcontent_view:(data,callBack)=>{
+      var aapi_token=data.api_token;
+      var query = "CALL view_appcontent(?,@p)";
+      pool.query(
+        query,
+        [aapi_token],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  MembershipTitle_view:(data,callBack)=>{
+    var aapi_token=data.api_token;
+    var query = "CALL view_membership_title(?,@p)";
+    pool.query(
+        query,
+        [aapi_token],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  MembershipTitle_update:(data,callBack)=>{
+    var aapi_token=data.api_token;
+    var editid=data.editid;
+    var mtitle=data.title;
+    var query = "CALL edit_membership_title(?,?,?,@p)";
+    pool.query(
+        query,
+        [aapi_token,editid,mtitle],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  TierBenefits_add:(data,cdate,imagesarr,callBack)=>{
+      var aapi_token=data.api_token;
+      var mtype=data.type_id;
+      var cimage=imagesarr;
+      var ctitle=data.title;
+      var cdescription=data.description;
+      var CurrentDate=cdate;
+      var query = "CALL add_tier_benefits(?,?,?,?,?,?,@p)";
+      pool.query(
+      query,
+      [aapi_token,mtype,cimage,ctitle,cdescription,CurrentDate],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  TierBenefits_update:(data,cdate,imagesarr,callBack)=>{
+        var aapi_token=data.api_token;
+        var editid=data.editid;
+        var mtype=data.type_id;
+        var cimage=imagesarr;
+        var ctitle=data.title;
+        var cdescription=data.description;
+        var CurrentDate=cdate;
+        var query = "CALL edit_tier_benefits(?,?,?,?,?,?,?,@p)";
+        pool.query(
+        query,
+        [aapi_token,editid,mtype,cimage,ctitle,cdescription,CurrentDate],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  TierBenefits_delete:(data,callBack)=>{
+      var aapi_token=data.api_token;
+      var deleteid=data.deleteid;
+      var query = "CALL delete_tier_benefits(?,?,@p)";
+      pool.query(
+        query,
+        [aapi_token,deleteid],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+  TierBenefits_view:(data,callBack)=>{
+   var aapi_token=data.api_token;
+      var query = "CALL view_tier_benefits_admin(?,@p)";
+      pool.query(
+        query,
+        [aapi_token],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
+
+  Aboutas_view:(data,callBack)=>{
+    var aapi_token=data.api_token;
+    var query = "CALL view_aboutas_admin(?,@p)";
+     pool.query(
+        query,
+        [aapi_token],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
+  Aboutas_update:(data,callBack)=>{
+    var aapi_token=data.api_token;
+    var editid=data.editid;
+    var atitle=data.title;
+    var adescription=data.description;
+    var query = "CALL edit_aboutas_admin(?,?,?,?,@p)";
+    pool.query(
+        query,
+        [aapi_token,editid,atitle,adescription],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
+
+  Topuplimit_view:(data,callBack)=>{
+    var aapi_token=data.api_token;
+    var query = "CALL view_topup_limit(?,@p)";
+    pool.query(
+        query,
+        [aapi_token],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
+
+  Topuplimit_update:(data,cdate,callBack)=>{
+    var aapi_token=data.api_token;
+    var editid=data.editid;
+    var lamount=data.amount;
+    var CurrentDate=cdate;
+    var query = "CALL edit_topup_limit(?,?,?,?,@p)";
+     pool.query(
+        query,
+        [aapi_token,editid,lamount,CurrentDate],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
+
+  VoucherBrand_add:(data,cdate,imagesarr,callBack)=>{
+    var aapi_token=data.api_token;
+    var bname=data.name;
+    var bimage=imagesarr;
+    var CurrentDate=cdate;
+    var image_type=data.image_type;
+    var gallery_id=data.gallery_id;
+    var query = "CALL add_voucher_brand(?,?,?,?,?,?,@p)";
+    pool.query(
+        query,
+        [aapi_token,bname,bimage,CurrentDate,image_type,gallery_id],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
+  VoucherBrand_view:(data,callBack)=>{
+    var aapi_token=data.api_token;
+     var query = "CALL view_voucher_brand(?,@p)";
+     pool.query(
+        query,
+        [aapi_token],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
+  VoucherBrand_edit:(data,cdate,imagesarr,callBack)=>{
+    var aapi_token=data.api_token;
+    var editid=data.editid;
+    var bname=data.name;
+    var bimage=imagesarr;
+    var CurrentDate=cdate;
+    var image_type=data.image_type;
+    var gallery_id=data.gallery_id;
+    var query = "CALL edit_voucher_brand(?,?,?,?,?,?,?,@p)";
+    pool.query(
+        query,
+        [aapi_token,editid,bname,bimage,CurrentDate,image_type,gallery_id],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
+  VoucherBrand_delete:(data,callBack)=>{
+    var aapi_token=data.api_token;
+    var deleteid=data.deleteid;
+    var query = "CALL delete_voucher_brand(?,?,@p)";
+    pool.query(
+        query,
+        [aapi_token,deleteid],
+        (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(mapi_token);
+        return callBack(null, results[0]);
+      }
+    ); 
+  },
 }

@@ -12,7 +12,7 @@ module.exports = {
    
     const body = req.body;
     var code = 0;
-    var query = "SELECT a.id,a.title,a.types_value,a.types,a.usage_limit_value,a.types,a.discount_type,a.usage_limit,a.total_vou_count,a.at_discount,a.usage_limit,b.cateName FROM tb_voucher a , tb_voucher_category b where a.cateID = b.id and"
+    var query = "SELECT a.id,a.title,a.types_value,a.types,a.usage_limit_value,a.types,a.discount_type,a.usage_limit,a.total_vou_count,a.usage_limit,b.cateName FROM tb_voucher a , tb_voucher_category b where a.cateID = b.id and"
  
     if (req.body.title) {//code = 1
       query = query + " " + "a.title =" + "'" + body.title + "' " + "and";
@@ -462,31 +462,42 @@ let resjson;
    let dataTop = {};
    let dataaddon = [];
    let variation = [];
+   let totaljson = [];
+   let prejson = {};
+   let calculation = {};
    let sst = 0;
    let stax = 0;
-   let newtotal = 0;
-   let roundamt = 0;
    let newroundamt = 0;
+   let vrounding;
+   let service_tax_percentage;
+   let resjson = {};
     if (!req.body.api_token) { return res.status(200).json(reqallfeild) }
     else if (!req.body.id) { return res.status(200).json(reqallfeild) }
     Verify_Employee(body,(err,results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       else if(results.err_id == "-1"){return res.status(200).json(apierrmsg)}
       else{
-        body.query = "Select wp.* from web_order_placed as wp join booking_table as bt on wp.book_id = bt.id where wp.id = '" + body.id + "'";
+        body.query = "Select wp.*,bt.* from web_order_placed as wp join booking_table as bt on wp.book_id = bt.id where wp.id = '" + body.id + "'";
+       
         COMMON(body,(err,result) =>{
+         let daata = result[0];
+       console.log(daata);
           if (err) { fatal_error.data = err; return res.json(fatal_error); }
           if(result){
             if(result.length > 0)
             {
-              dataTop.orderid = result.orderid;
-              dataTop.orderid = result.table_name;
-              dataTop.orderid = result.created_at;
+              dataTop = {
+              "orderid" : daata.orderid,
+              "table" : daata.table_name,
+              "dateTime" : daata.created_at
+              }
+         
               body.query = "Select * from web_order_placed_addon where (weborderplaceID = '" + body.id + "' and " + "type = 'product') order by id ASC";
-              console.log(body.query);
+              
               COMMON(body,(err,result) =>{
                 let total = 0;
                 let subtotal = 0;
+                
                 if (err) { fatal_error.data = err; return res.json(fatal_error); }
                if(result)
                {
@@ -495,38 +506,88 @@ let resjson;
                   ASYNC.each(result, function(element, callback) {
                     total = element.qty * element.price;
                     subtotal = subtotal + total;
+                    
 body.query = "Select * from web_order_placed_addon where (type = 'variation' and productid = '" + element.productid +"' and " + "weborderplaceID = '"  + body.id + "'" +")"
 COMMON(body,(err,result) =>{
   if (err) { fatal_error.data = err; return res.json(fatal_error); }
   if(result)
                {
-                variation.push(result);
+                
+                variation.push(result[0]);
+                
                 body.query = "Select * from web_order_placed_addon where (type = 'addon' and productid = '" + element.productid +"' and " + "weborderplaceID = '"  + body.id + "'" +")"
+                
                 COMMON(body,(err,result) =>{
                   if (err) { fatal_error.data = err; return res.json(fatal_error); }
                   if(result){
+                    
                     if(result.length > 0)
                     {
                       result.forEach(element => {
                         dataaddon.push(element);
                     });
+                  }
                     body.query = "Select * from zarest_settings where id = '1'"
                     COMMON(body,(err,result) =>{
+                    
                       if (err) { fatal_error.data = err; return res.json(fatal_error); }
                       if(result){
                         if(result.length > 0)
                         {
                           sst = (result[0].tax/100) * subtotal;
                           stax = (result[0].service_tax/100) * subtotal;
-                          newtotal = subtotal + sst + stax;
-                          newroundamt = newtotal.toFixed(2);
-                          let lastNum = parseInt(newroundamt[newroundamt.length - 1])
-                          let newroundamt = parseFloat(newroundamt);
+                          total = subtotal + sst + stax;      
+                           newroundamt = total.toFixed(1);
+                           newroundamt = parseFloat(newroundamt);
+                          if (Number.isInteger(newroundamt)) {
+                           
+                            newroundamt = newroundamt;
+                          }
+                          else {
+                           
+                            newroundamt.toFixed(2);
+                            newroundamt = parseFloat(newroundamt);
+                          }
+                          let balnceamount = newroundamt - total;
+                          vrounding = parseFloat(balnceamount.toFixed(2));
+                          if(Math.sign(vrounding))
+                         {  
+                          vrounding = "+" + vrounding;
+                         }
+                         else{
+                          vrounding = "-" + vrounding;
+                         }
+                        
+                         calculation = {
+                          "service_tax_percentage":daata.service_tax,
+                          "default_t_ax_percentage":daata.default_tax,
+                          "DefaultTax":stax,
+                          "sst":sst,
+                          "subtotal":subtotal,
+                          "rounding":vrounding,
+                          "finalTotal":newroundamt
+
+                         }
+                          resjson = {
+                            
+                            "id":element.id,
+                            "qty":element.qty,
+                            "price":element.price,
+                            "productName":element.addon,
+                            "Remark":element.remark,
+                            "variation":variation[0].addon,
+                            "addon":dataaddon,                                    
+                          
+                          }
+                       
+                          totaljson.push(resjson);
+                          callback();
                         }
+
                       }
 
                     });
-                    }
+                    
                   }
 
                 });
@@ -534,7 +595,11 @@ COMMON(body,(err,result) =>{
 });
                   },function (err)
                   {
-
+                    if (err) { fatal_error.data = err; return res.json(fatal_error); }
+                    else { sucess.data = totaljson;
+                      sucess.datacal =calculation;
+                      sucess.tableDetails =dataTop;
+                       return res.json(sucess); }
                   });
                     
                   

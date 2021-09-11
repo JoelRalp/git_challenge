@@ -1,6 +1,6 @@
 
 
-const{ VIEW_VOUCHER_CATEGORY, ADD_VOUCHER_CATEGORY,EDIT_VOUCHER_CATEGORY,GET_VOUCHER_CATEGORY,CHANGE_VOUCHER_CATEGORY_STATUS,DELETE_VOUCHER_CATEGORY} = require("../VoucherCategory/Vouchercategory.service");
+const{ VIEW_VOUCHER_CATEGORY, ADD_VOUCHER_CATEGORY,EDIT_VOUCHER_CATEGORY,GET_VOUCHER_CATEGORY,CHANGE_VOUCHER_CATEGORY_STATUS,DELETE_VOUCHER_CATEGORY,Category_View} = require("../VoucherCategory/Vouchercategory.service");
 const{ refresh} = require("../Mqtt/server");
 
 
@@ -64,6 +64,7 @@ if(results){
     }
     else if (!req.body.cateName) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.cateStatus) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
+    else if (!req.body.cateType) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
 
     ADD_VOUCHER_CATEGORY(body, (err, results) => {
       if (err) {
@@ -117,6 +118,7 @@ if(results){
     else if (!req.body.id) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.cateName) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.cateStatus) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
+    else if (!req.body.cateType) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
 
     EDIT_VOUCHER_CATEGORY(body, (err, results) => {
 
@@ -199,9 +201,9 @@ if(results){
   },
   changeVoucherCategoryStatus: (req, res) => {
     let body = req.body;
-    if (!req.body.api_token) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Invalid admin api token" }) }
-    else if (!req.body.cateid) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
-    else if (!req.body.status) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
+    if (!req.body.api_token) { return res.status(200).json({ status: "failure", statuscode: "2", msg: "Invalid admin api token" }) }
+    else if (!req.body.cateid) { return res.status(200).json({ status: "failure", statuscode: "2", msg: "Required All Field" }) }
+    else if (!req.body.status) { return res.status(200).json({ status: "failure", statuscode: "2", msg: "Required All Field" }) }
 
     CHANGE_VOUCHER_CATEGORY_STATUS(body, (err, results) => {
 
@@ -216,7 +218,7 @@ if(results){
       else if (results[0].err_id == '-2') {
         return res.json({
           status: "failure",
-          statuscode: "3",
+          statuscode: "4",
           data: "Invalid Category id"
         });
       }
@@ -242,8 +244,8 @@ if(results){
   deleteVoucherCategory: (req, res) => {
     let body = req.body;
 
-    if (!req.body.api_token) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Invalid admin api token" }) }
-    else if (!req.body.id) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
+    if (!req.body.api_token) { return res.status(200).json({ status: "failure", statuscode: "2", msg: "Invalid admin api token" }) }
+    else if (!req.body.id) { return res.status(200).json({ status: "failure", statuscode: "2", msg: "Required All Field" }) }
 
     DELETE_VOUCHER_CATEGORY(body, (err, results) => {
 
@@ -266,7 +268,7 @@ if(results){
       else if (results[0].err_id == '-1') {
         return res.json({
           status: "failure",
-          statuscode: "3",
+          statuscode: "4",
           msg: "Invalid admin api token"
         });
       }
@@ -278,6 +280,29 @@ if(results){
           data: "category deleted successfully"
         });
       }
+    });
+  },
+  view_Category:(req, res) => {
+
+    if(!req.body.api_token || !req.body.type){
+      return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+    }
+    const body = req.body;
+    Category_View(body,(err,result)=>{
+      if(err){
+        var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+      }
+      else if(result.length > 0){
+
+        if(result[0].rescode=='4'){
+          var data = {"status":"failure",'statuscode':'3',"data":'Invalid api token'};
+        } else {
+          var data = {"status":"success",'statuscode':'1',"data":result};
+        }
+      } else {
+        var data = {"status":"failure",'statuscode':'4',"data":'No data found'};
+      }
+      return res.status(200).json(data);
     });
   },
 };

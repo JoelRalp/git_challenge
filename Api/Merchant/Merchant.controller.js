@@ -1,7 +1,7 @@
 const { Login_Merchant } = require("./Merchant.service");
-var admin = require("firebase-admin");
-const FCM = require('fcm-node')
-// const firebase = require('firebase');
+const PushNotification = require("../Mqtt/push");
+var moment = require('moment-timezone');
+const { encrypt,verifyPassword} = require("../Mqtt/crypto");
 const { Point_Payment,Cancel_Reservation,Cancel_Topup_Payment } = require("./Merchant.service");
 const { Type_Payment } = require("./Merchant.service");
 const { Voucher_Payment } = require("./Merchant.service");
@@ -19,12 +19,12 @@ const { Pin_check } = require("./Merchant.service");
 const { Endsummary_day,Merchant_Profile } = require("./Merchant.service");
 const { Endsummary_add,Merchant_View_Reservation } = require("./Merchant.service");
 const { EndReprot_day,Update_Pin } = require("./Merchant.service");
-const { EndReprotSearch_day ,Delete_Product,Confirm_Order} = require("./Merchant.service");
+const { EndReprotSearch_day ,Delete_Product,Confirm_Order,Reservation_Add} = require("./Merchant.service");
 const pool = require("../../config/database");
 const { Topup_merchant, COMMON,Verify_User,Delete_Order,View_Profile } = require("./Merchant.service");
 const ASYNC = require('async');
-const { Wallet_payment, View_Merchant_Category_Mobile, View_Merchant_Product_Mobile } = require("./Merchant.service");
-const { History_topup, View_Mobile_Merchant_Product_Stock, View_Mobile_Category_Mobile, View_Mobile_Merchant_Product_Update_Stock, View_Mobile_Reservation_History, View_Category_Product_Mobile } = require("./Merchant.service");
+const { Wallet_payment, View_Merchant_Category_Mobile, View_Merchant_Product_Mobile,User_view} = require("./Merchant.service");
+const { History_topup, View_Mobile_Merchant_Product_Stock, View_Mobile_Category_Mobile, View_Mobile_Merchant_Product_Update_Stock, View_Mobile_Reservation_History, View_Category_Product_Mobile,Outlet_View} = require("./Merchant.service");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
 
 
@@ -43,17 +43,19 @@ Merchant_login = (req, res) => {
 		}
 		else {
 			if (result[0]) {
-				if (result[0].password == body.password) {
+				//if (result[0].password == body.password) {
 					if (result[0].status == '1') {
-						var data = { "status": "success", 'statuscode': '1', "data": result };
+						const check = verifyPassword(req.body.password,result[0].password);
+						if(check){
+							var data = { "status": "success", 'statuscode': '1', "data": result };
+						}else{
+							var data = {"status":"failure",'statuscode':'3',"data":'Invalid password'};
+						}
 					} else {
-						var data = { "status": "failure", 'statuscode': '3', "data": 'Account Deactivated,Contact Admin' };
+						var data = { "status": "failure", 'statuscode': '4', "data": 'Account Deactivated,Contact Admin' };
 					}
-				} else {
-					var data = { "status": "failure", 'statuscode': '2', "data": 'Incorrect password!' };
-				}
 			} else {
-				var data = { "status": "failure", 'statuscode': '4', "data": 'Merchant not found. Incorrect merchant id!' };
+				var data = { "status": "failure", 'statuscode': '5', "data": 'Merchant not found. Incorrect merchant id!' };
 			}
 		}
 		return res.status(200).json(data);
@@ -62,13 +64,14 @@ Merchant_login = (req, res) => {
 
 Payment_Point = (req, res) => {
 
-	if (req.body.user_token == '' || req.body.merchant_token == '' || req.body.amount == '') {
+	if (!req.body.user_token || !req.body.merchant_token  || !req.body.amount ) {
 		return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" })
 	}
 	//console.log(req);
 	const body = req.body;
+	var insertapi = makeid(50);
 
-	Point_Payment(body, (err, result) => {
+	Point_Payment(body,insertapi,(err, result) => {
 		//console.log(result[0].rescode);
 		if (result[0].rescode == '1') {
 			var data = { "status": "success", 'statuscode': '1', "data": 'Payment added successfully' };
@@ -77,7 +80,13 @@ Payment_Point = (req, res) => {
 		} else if (result[0].rescode == '3') {
 			var data = { "status": "failure", 'statuscode': '4', "data": 'Invalid merchant token' };
 		} else {
-			var data = { "status": "success", 'statuscode': '1', "msg": 'Payment added successfully', "data": result[0].rescode };
+			var data = { "status": "success", 'statuscode': '1', "msg": 'Payment added successfully', "data": JSON.parse(result[0].rescode)};
+			var json = JSON.parse(result[0].rescode);
+			if(json.device_token) {
+				var title='Payment';
+                var message='Congratulations you have earned '+json.point+' points';
+				PushNotification(json.device_token,title,message);
+			}
 		}
 		return res.status(200).json(data);
 	});
@@ -85,8 +94,8 @@ Payment_Point = (req, res) => {
 };
 
 Payment_Type = (req, res) => {
-	if (req.body.api_token == '') {
-		return res.status(200).json({ status: "failure", statuscode: "3", data: "Required All Field" })
+	if (!req.body.api_token) {
+		return res.status(200).json({ status: "failure", statuscode: "2", data: "Required All Field" })
 	}
 	const body = req.body;
 
@@ -104,26 +113,40 @@ Payment_Type = (req, res) => {
 
 Payment_Voucher = (req, res) => {
 
-	if (req.body.qrcode == '' || req.body.merchantToken == '' || req.body.amount == '') {
+	if (!req.body.qrcode || !req.body.merchantToken || !req.body.amount ) {
 		return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required all field" })
 	}
 
 	const body = req.body;
-	Voucher_Payment(body, (err, result) => {
+	var insertapi = makeid(50);
+	var CurrentDate  = moment().tz("Asia/Kuala_Lumpur").format("YYYY-MM-DD HH:mm:ss");
+	Voucher_Payment(body,insertapi,CurrentDate,(err, result) => {
 
-		if (result[0].rescode == '1') {
-			var data = { "status": "success", 'statuscode': '1', "data": 'Voucher redeemed successfully..' };
-		} else if (result[0].rescode == '2') {
-			var data = { "status": "failure", 'statuscode': '2', "data": 'Invalid merchant api token' };
-		} else if (result[0].rescode == '3') {
-			var data = { "status": "failure", 'statuscode': '3', "data": 'This qrcode already used, please try another qrcode' };
-		} else if (result[0].rescode == '4') {
-			var data = { "status": "failure", 'statuscode': '4', "data": 'Invalid voucher code' };
-		} else if (result[0].rescode == '5') {
-			var data = { "status": "failure", 'statuscode': '5', "data": 'Voucher already expired' };
-		} else if (result[0].rescode == '6') {
-			var data = { "status": "failure", 'statuscode': '6', "data": 'Voucher limit exceeded' };
-		}
+		if(err){
+			var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+		}else{
+			if (result[0].rescode == '1') {
+				var data = { "status": "success", 'statuscode': '1', "data": 'Voucher redeemed successfully..' };
+			} else if (result[0].rescode == '2') {
+				var data = { "status": "failure", 'statuscode': '2', "data": 'Invalid merchant api token' };
+			} else if (result[0].rescode == '3') {
+				var data = { "status": "failure", 'statuscode': '3', "data": 'This qrcode already used, please try another qrcode' };
+			} else if (result[0].rescode == '4') {
+				var data = { "status": "failure", 'statuscode': '4', "data": 'Invalid voucher code' };
+			} else if (result[0].rescode == '5') {
+				var data = { "status": "failure", 'statuscode': '5', "data": 'Voucher already expired' };
+			} else if (result[0].rescode == '6') {
+				var data = { "status": "failure", 'statuscode': '6', "data": 'Voucher limit exceeded' };
+			}else{
+				var data = { "status": "success", 'statuscode': '1', "msg": 'Voucher redeemed successfully..',"data": JSON.parse(result[0].rescode) };
+				var json = JSON.parse(result[0].rescode);
+				if(json.device_token) {
+					var title='Voucher';
+	                var message='Your voucher redeem successfully';
+					PushNotification(json.device_token,title,message);
+				}
+			}
+	}
 		return res.status(200).json(data);
 
 	});
@@ -135,14 +158,17 @@ Payment_History = (req, res) => {
 	}
 	const body = req.body;
 	History_Payment(body, (err, result) => {
-		if (result[0].rescode == '2') {
-			var data = apierrmsg;
-		} else if (result[0].rescode == '4') {
-			var data = nodatafound;
-		} else {
-			sucess.data = result;
-			var data = sucess;
-		}
+		if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}else if(result.length > 0){
+				if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'Invalid merchant api token'};
+				}else{
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			}else {
+				var data = {"status":"failure",'statuscode':'4',"data":'No data found'};
+			}
 		return res.status(200).json(data);
 	});
 };
@@ -167,13 +193,14 @@ Payment_Historysearch = (req, res) => {
 
 add_Merchant = (req, res) => {
 
-	if (req.body.api_token == '' || req.body.name == '' || req.body.email == '' || req.body.phone == '' || req.body.ic == '' || req.body.staffID == '' || req.body.password == '' || req.body.pin == '' || req.body.outlet == '') {
+	if (!req.body.api_token  || !req.body.name  || !req.body.email  || !req.body.phone || !req.body.ic  || !req.body.staffID  || !req.body.password || !req.body.pin || !req.body.outlet) {
 		return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required all field" })
 	}
 
 	const body = req.body;
 	var insertapi = makeid(80);
-	Merchant_add(body, insertapi, (err, result) => {
+	const uppass =encrypt(req.body.password);
+	Merchant_add(body, insertapi, uppass,(err, result) => {
 		if (result[0].rescode == '1') {
 			var data = { "status": "success", 'statuscode': '1', "data": 'Merchant added successfully' };
 		} else if (result[0].rescode == '2') {
@@ -319,35 +346,41 @@ check_Pin = (req, res) => {
 
 day_EndSummary = (req, res) => {
 
-	if (req.body.api_token == '') {
+	if (!req.body.api_token) {
 		return res.status(200).json({ status: "failure", statuscode: "2", msg: "Required all field" })
 	}
 
 	const body = req.body;
 	Endsummary_day(body, (err, result) => {
-
-		if (result[0].rescode == '2') {
-			var data = { "status": "failure", 'statuscode': '3', "data": 'Invalid merchant pin' };
-		} else {
-			var data = { "status": "success", 'statuscode': '1', "data": result };
-		}
+		if(err){
+			var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+		}else if(result.length > 0){
+			if (result[0].rescode == '2') {
+				var data = { "status": "failure", 'statuscode': '3', "data": 'Invalid merchant api token' };
+			} else {
+				var data = { "status": "success", 'statuscode': '1', "data": JSON.parse(result[0].rescode) };
+			}
+	}else{
+		var data = {"status":"failure",'statuscode':'4',"data":'No data found'};
+	}
 		return res.status(200).json(data);
+	
 	});
 };
 
 add_EndSummary = (req, res) => {
-	if (req.body.api_token == '') {
+	if (!req.body.api_token) {
 		return res.status(200).json({ status: "failure", statuscode: "2", msg: "Required all field" })
 	}
 	const body = req.body;
 	Endsummary_add(body, (err, result) => {
 
 		if (result[0].rescode == '3') {
-			var data = { "status": "failure", 'statuscode': '3', "data": 'Invalid merchant pin' };
+			var data = { "status": "failure", 'statuscode': '3', "data": 'Invalid api token' };
 		} else if (result[0].rescode == '4') {
 			var data = { "status": "failure", 'statuscode': '4', "data": 'No data found' };
 		} else {
-			var data = { "status": "success", 'statuscode': '1', "data": result };
+			var data = { "status": "success", 'statuscode': '1', "msg":'Day end summary added successfully',"data": JSON.parse(result[0].rescode) };
 		}
 		return res.status(200).json(data);
 
@@ -360,13 +393,16 @@ day_EndReprot = (req, res) => {
 	}
 	const body = req.body;
 	EndReprot_day(body, (err, result) => {
-
-		if (result[0].rescode == '3') {
-			var data = { "status": "failure", 'statuscode': '3', "data": 'Invalid merchant pin' };
-		} else if (result[0].rescode == '4') {
-			var data = { "status": "failure", 'statuscode': '4', "data": 'No data found' };
+		if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+		}else if(result.length > 0){
+			if (result[0].rescode == '3') {
+				var data = { "status": "failure", 'statuscode': '3', "data": 'Invalid merchant api token' };
+			} else {
+				var data = { "status": "success", 'statuscode': '1', "data": result };
+			}
 		} else {
-			var data = { "status": "success", 'statuscode': '1', "data": result };
+				var data = {"status":"failure",'statuscode':'4',"data":'No data found'};
 		}
 		return res.status(200).json(data);
 
@@ -396,19 +432,25 @@ day_EndReprotSearch = (req, res) => {
 
 merchant_Topup = (req, res) => {
 
-	if (req.body.api_token == '' || req.body.amount == '' || req.body.qrcode == '') {
+	if (!req.body.api_token || !req.body.amount  || !req.body.qrcode) {
 		return res.status(200).json({ status: "failure", statuscode: "2", msg: "Required all field" })
 	}
 
 	const body = req.body;
-	Topup_merchant(body, (err, result) => {
-
+	Topup_merchant(body,(err, result) => {
+		console.log(result);
 		if (result[0].rescode == '3') {
 			var data = { "status": "failure", 'statuscode': '3', "data": 'Invalid merchant pin' };
 		} else if (result[0].rescode == '4') {
 			var data = { "status": "failure", 'statuscode': '4', "data": 'Invalid qrcode...' };
 		} else {
-			var data = { "status": "success", 'statuscode': '1', "msg": 'Topup added successfully', "data": result };
+			var data = { "status": "success", 'statuscode': '1', "msg": 'Topup added successfully', "data":JSON.parse(result[0].rescode)};
+			var json = JSON.parse(result[0].rescode);
+			if(json.device_token) {
+				var title='Topup';
+                var message='Congratulations you have topup RM '+json.amount;
+				PushNotification(json.device_token,title,message);
+			}
 		}
 		return res.status(200).json(data);
 
@@ -417,7 +459,7 @@ merchant_Topup = (req, res) => {
 
 payment_Wallet = (req, res) => {
 
-	if (req.body.api_token == '' || req.body.amount == '' || req.body.qrcode == '') {
+	if (!req.body.api_token || !req.body.amount  || !req.body.qrcode) {
 		return res.status(200).json({ status: "failure", statuscode: "2", msg: "Required all field" })
 	}
 	const body = req.body;
@@ -430,7 +472,13 @@ payment_Wallet = (req, res) => {
 		} else if (result[0].rescode == '5') {
 			var data = { "status": "failure", 'statuscode': '5', "data": 'Customer has insufficient balance' };
 		} else {
-			var data = { "status": "success", 'statuscode': '1', "msg": 'Wallet payment successfully', "data": result };
+			var data = { "status": "success", 'statuscode': '1', "msg": 'Wallet payment successfully', "data":JSON.parse(result[0].rescode) };
+			var json = JSON.parse(result[0].rescode);
+			if(json.device_token) {
+				var title='Payment';
+                var message='Congratulations you have earned '+json.point+' points';
+				PushNotification(json.device_token,title,message);
+			}
 		}
 		return res.status(200).json(data);
 	});
@@ -967,36 +1015,7 @@ UpdatePin = (req,res) => {
 	});
 
 };
-PushNotification = (req,res) => {
-	const body = req.body;
-	var serverKey =  require('../Mqtt/sos-app-c54bc-firebase-adminsdk-ouhzu-fe1b7614e7.json'); //put the generated private key path here    
-    
-    var fcm = new FCM(serverKey)
 
-    var message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)
-        to: body.token, 
-        collapse_key: process.env.Firebasekey,
-        
-        data: {  //you can send only notification or only data(or include both)
-            message: {
-				title: body.title,
-				body: body.message,
-				icon: 'myIcon',
-				sound: 'mySound'
-			},
-            moredata: 'dd'
-        }
-    }
-    
-    fcm.send(message, function(err, response){
-        if (err) {
-            console.log("Something has gone wrong!")
-        } else {
-            console.log("Successfully sent with response: ", response)
-        }
-    })
-
-};
 ViewMerchantReservation = (req,res) => {
 	const body = req.body;
 
@@ -1109,75 +1128,91 @@ console.log(results);
 
 };
 Cancelreservation = (req,res) => {
+	
+	if (!req.body.api_token || !req.body.id || !req.body.action) { 
+		return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"}) 
+	}
 	const body = req.body;
-
-	if (!req.body.api_token) { return res.json(apierrmsg) }
-	if (!req.body.id) { return res.json(reqallfeild) }
-	Cancel_Reservation(body, (err, results) => {
-console.log(results);
+	Cancel_Reservation(body, (err, result) => {
+		console.log(result);
 		if (err) { fatal_error.data = err; return res.json(fatal_error); }
-		else if (results.length > 0) {
-			
-			if (results[0].err_id == "-1") { return res.json(apierrmsg); }
-			else if (results[0].err_id == "-2") {   return res.json(nodatafound); }
-			else if(results[0].err_id == "1") {  }
+		else if (result.length > 0) {
+			if(result[0].rescode=='1'){
+					var data = {"status":"success",'statuscode':'1',"data":'Reservation status Updated successfully'};
+				}else if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'Invailed reservation id'};
+				}else if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Invalid merchant api token'};
+				}	
+		}else { 
+			return res.json(nodatafound); 
 		}
-		else { return res.json(nodatafound); }
+		return res.status(200).json(data);
 	});
 
 };
 cancel_Payment = (req, res) => {
 
-	if (req.body.api_token == '' || req.body.paymentid == '') {
-		return res.status(200).json(reqallfeild)
+	if (!req.body.api_token || !req.body.paymentid) {
+		return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
 	}
 
 	const body = req.body;
 	Payment_cancel(body, (err, result) => {
-		if (result[0].rescode == '1') {
-			var data =  sucess.data = "Payment cancelled"; return res.json(sucess);;
-		} else if (result[0].rescode == '2') {
-			var data =  apierrmsg ;
-		} else if (result[0].rescode == '3') {
-			insfailure.msg = "Ivalid payment id"
-			var data = insfailure
-		}
+		if(err){
+			var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+		}else{
+			if (result[0].rescode == '1') {
+				var data = {"status":"sucess",'statuscode':'1',"data":'Payment cancelled successfully'};
+			} else if (result[0].rescode == '3') {
+				var data = {"status":"failure",'statuscode':'3',"data":'Invalid merchant code'};
+			} else if (result[0].rescode == '4') {
+				var data = {"status":"failure",'statuscode':'4',"data":'Invalid payment id'};
+			} else {
+				var data = {"status":"sucess",'statuscode':'1',"data":'Payment cancelled successfully'};
+				var json = JSON.parse(result[0].rescode);
+				if(json.device_token) {
+					var title='Cancelled';
+	                var message='Your last payment cancelled '+json.point+' point redeem your account';
+					PushNotification(json.device_token,title,message);
+				}
+			}
+	 }
 		return res.status(200).json(data);
 	});
 };
+
 Cancel_Topup = (req, res) => {
 
-	if (req.body.api_token == '' || req.body.paymentid == '') {
-		return res.status(200).json(reqallfeild)
+	if (!req.body.api_token || !req.body.paymentid) {
+		return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
 	}
 
 	const body = req.body;
 	Cancel_Topup_Payment(body, (err, result) => {
-		if (result[0].err_id == '0.5') {
-			var data =  sucess.data = "Payment cancelled"; return res.json(sucess);;
-		} else if (result[0].err_id == '-1') {
-			var data =  apierrmsg ;
-		} else if (result[0].err_id == '-2') {
-			insfailure.msg = "Invalid payment id";
-			var data =  insfailure ;
-		}  else if (result[0].err_id == '-3') {
-			nodatafound.data = "User has insufficient balance to refund the top up";
-			var data =  nodatafound ;
-		}
-		else  {
-			let json = {
-				title:"Cancelled",
-				message:"Your last topup cancelled",
-				token:result[0].err_id
+		if(err){
+			var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+		}else{
+			if (result[0].rescode == '3') {
+				var data = {"status":"failure",'statuscode':'3',"data":'Invalid merchant code'};
+			} else if (result[0].rescode == '4') {
+				var data = {"status":"failure",'statuscode':'4',"data":'Invalid payment id'};
+			} else if (result[0].rescode == '5') {
+				var data = {"status":"failure",'statuscode':'5',"data":'User has insufficient balance to refund the top up'};
+			}  else {
+				var data = {"status":"sucess",'statuscode':'1',"data":'Topup cancelled successfully'};
+				var json = JSON.parse(result[0].rescode);
+				if(json.device_token) {
+					var title='Cancelled';
+	                var message='Your last topup cancelled '+json.amount+' amount redeem your wallet';
+					PushNotification(json.device_token,title,message);
+				}
 			}
-			this.PushNotification(json, (err, results) => {
-
-
-			});
-		}
+	 }
 		return res.status(200).json(data);
 	});
 };
+
 function get_order_product(bookid, orderid,callBack) {
 	let query = "Select * from web_order_placed_addon where bookid = '" + bookid + "'" + "and weborderplaceID = '" + orderid + "'" + "and type = 'product' and status = '2' or status = '3';"
 	pool.query(query, function (error, results, filelds) {
@@ -1225,6 +1260,76 @@ function get_order_product(bookid, orderid,callBack) {
 	});
 
 }
+
+view_User=(req,res)=>{
+	if(!req.body.api_token){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})	
+		}
+		const body = req.body;
+		User_view(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+				if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'Invalid api token'};
+				} else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'4',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+		});
+};
+add_Reservation=(req,res)=>{
+	if(!req.body.api_token || !req.body.outID || !req.body.date || !req.body.time || !req.body.pax1 ||  !req.body.name ||  !req.body.phone || !req.body.description ){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+	}
+	var insertapi = makeid(80);
+	const body = req.body;
+	Reservation_Add(body,insertapi,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+				if(result[0].rescode=='1'){
+					var data = {"status":"success",'statuscode':'1',"data":'Reservation insert successfully'};
+				}else if(result[0].rescode=='3') {
+					var data = {"status":"failure",'statuscode':'3',"data":'Invalid merchant api token'};
+				}else if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Account Deactivated, Contact Admin'};
+				}else if(result[0].rescode=='5'){
+					var data = {"status":"failure",'statuscode':'5',"data":'Please verify your phone number before registration reservation'};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'4',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+	});
+};
+
+View_outlet=(req,res)=>{
+		if(!req.body.api_token ){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+		const body = req.body;
+		Outlet_View(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}else{
+				if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'No data found'};
+				}else if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Invalid api token'};
+				}else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			}
+			return res.status(200).json(data);
+		});
+	};
+
 module.exports = {
 
 	Merchant_login,
@@ -1271,5 +1376,9 @@ module.exports = {
 	ChangeMerPassword,
 	Fiter_History,
 	Fiter_Reservation,
-	Cancelreservation
+	Cancelreservation,
+	Cancel_Topup,
+	view_User,
+	add_Reservation,
+	View_outlet
 };

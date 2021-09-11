@@ -1,10 +1,10 @@
 const fs = require("fs");
 const { Console } = require("console");
-const { VIEW_BETA_CATEGORY,ADD_BETA_CATEGORY,GET_BETA_CATEGORY,CHANGE_BETA_CATEGORY_STATUS,DELETE_BETA_CATEGORY,EDIT_BETA_CATEGORY,VIEW_BETA_PRODUCT,ADD_BETA_PRODUCT,GET_BETA_PRODUCT,CHANGE_BETA_PRODUCT,DELETE_BETA_PRODUCT,EDIT_BETA_PRODUCT,VIEW_BETA_SUBPRODUCT,ADD_BETA_SUBPRODUCT,GET_BETA_SUBPRODUCT,CHANGE_BETA_SUBPRODUCT,DELETE_BETA_SUBPRODUCT,EDIT_BETA_SUBPRODUCT} = require("./beta.service.");
+const { VIEW_BETA_CATEGORY,ADD_BETA_CATEGORY,GET_SUB_PRO,GET_BETA_CATEGORY,CHANGE_BETA_CATEGORY_STATUS,DELETE_BETA_CATEGORY,EDIT_BETA_CATEGORY,VIEW_BETA_PRODUCT,ADD_BETA_PRODUCT,GET_BETA_PRODUCT,CHANGE_BETA_PRODUCT,DELETE_BETA_PRODUCT,EDIT_BETA_PRODUCT,VIEW_BETA_SUBPRODUCT,ADD_BETA_SUBPRODUCT,GET_BETA_SUBPRODUCT,CHANGE_BETA_SUBPRODUCT,DELETE_BETA_SUBPRODUCT,EDIT_BETA_SUBPRODUCT} = require("./beta.service.");
 const { makeid, refresh } = require("../Mqtt/server");
 var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
-
-
+const s3w = require("../Aws.s3");
+const { COMMON } = require("../common.service");
 module.exports = {
   viewBetaCategory: (req, res) => {
     const body = req.body;
@@ -20,21 +20,25 @@ module.exports = {
     if (!req.body.api_token) { return res.json(apierrmsg) }
     else if (!req.body.name) { return res.status(200).json(reqallfeild) }
     else if (!(req.files && req.files.image)) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.orderBy) { return res.status(200).json(reqallfeild) }
-   
+    else if (!req.body.alow_sub) { return res.status(200).json(reqallfeild) }
     var imgname = makeid(5);
-    ADD_BETA_CATEGORY(body, imgname, (err, results) => {
-      if (err) { fatal_error.data = err; return res.json(fatal_error); }
-      else if (results[0].err_id == 1) {
-        fs.writeFileSync("Api\\Images\\Betacategory\\" + imgname + ".png", req.files.image.data);
-        refresh();
-        inssucess.msg = "Category added sucessfully"
-        return res.json(inssucess);
-      }
-      else if (results[0].err_id == -1) { return res.json(apierrmsg); }
-      else if (results[0].err_id == -2) { insfailure.msg = "Category name already inserted"; return res.json(insfailure); }
-      else { resfailure.msg = results; return res.json(resfailure); }
+    s3w.uploadFile (req.files.image.data,imgname,(results, err) => {
+      ADD_BETA_CATEGORY(body, results, (err, results) => {
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        else if (results[0].err_id == 1) {
+         
+        
+          refresh();
+          inssucess.msg = "Category added sucessfully"
+          return res.json(inssucess);
+        }
+        else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+        else if (results[0].err_id == -2) { insfailure.msg = "Category name already inserted"; return res.json(insfailure); }
+        else { resfailure.msg = results; return res.json(resfailure); }
+      });
+          
     });
+    
   },
   getBetaCategory: (req, res) => {
     const body = req.body;
@@ -73,26 +77,50 @@ module.exports = {
     });
   },
   editBetaCategory: (req, res) => {
+    
     const body = req.body;
     if (!req.body.api_token) { return res.json(apierrmsg) }
     else if (!req.body.name) { return res.status(200).json(reqallfeild) }
-    else if (!(req.files && req.files.image)) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.orderBy) { return res.status(200).json(reqallfeild) }
+    else if (!req.body.alow_sub) { return res.status(200).json(reqallfeild) }
     else if (!req.body.editId) { return res.status(200).json(reqallfeild) }
-   
-    var imgname = makeid(5);
-    EDIT_BETA_CATEGORY(body, imgname, (err, results) => {
-      if (err) { fatal_error.data = err; return res.json(fatal_error); }
-      else if (results[0].err_id == 1) {
-        fs.writeFileSync("Api\\Images\\Betacategory\\" + imgname + ".png", req.files.image.data);
-        refresh();
-        inssucess.msg = "Category updated sucessfully"
-        return res.json(inssucess);
-      }
-      else if (results[0].err_id == -1) { return res.json(apierrmsg); }
-      else if (results[0].err_id == -2) { insfailure.msg = "Category name already inserted"; return res.json(insfailure); }
-      else { resfailure.msg = results; return res.json(resfailure); }
-    });
+    
+     if (req.files && req.files.image) { 
+      var imgname = makeid(5);
+      s3w.uploadFile (req.files.image.data,imgname,(results, err) => {
+        console.log(results);
+        EDIT_BETA_CATEGORY(body, results, (err, results) => {
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          else if (results[0].err_id == 1) {
+           
+            refresh();
+            inssucess.msg = "Category updated sucessfully"
+            return res.json(inssucess);
+          }
+          else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+          else if (results[0].err_id == -2) { insfailure.msg = "Category name already inserted"; return res.json(insfailure); }
+          else { resfailure.msg = results; return res.json(resfailure); }
+        });
+      });
+
+    }
+
+    else{
+      console.log("out");
+      EDIT_BETA_CATEGORY(body,'', (err, results) => {
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        else if (results[0].err_id == 1) {
+         
+          refresh();
+          inssucess.msg = "Category updated sucessfully"
+          return res.json(inssucess);
+        }
+        else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+        else if (results[0].err_id == -2) { insfailure.msg = "Category name already inserted"; return res.json(insfailure); }
+        else { resfailure.msg = results; return res.json(resfailure); }
+      });
+
+    }
+    
   },
   viewBetaProduct: (req, res) => {
     const body = req.body;
@@ -112,24 +140,28 @@ module.exports = {
     else if (!req.body.sku) { return res.status(200).json(reqallfeild) }
     else if (!req.body.cost) { return res.status(200).json(reqallfeild) }
     else if (!req.body.sellingPrice) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.type) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.status) { return res.status(200).json(reqallfeild) }
-    ADD_BETA_PRODUCT(body,(err, results) => {
-      if (err) { fatal_error.data = err; return res.json(fatal_error); }
-      else if (results[0].err_id == 1) {
-        refresh();
-        inssucess.msg = "Product added sucessfully"
-        return res.json(inssucess);
-      }
-      else if (results[0].err_id == -1) { return res.json(apierrmsg); }
-      else if (results[0].err_id == -2) { insfailure.msg = "Product name already inserted"; return res.json(insfailure); }
-      else { resfailure.msg = results; return res.json(resfailure); }
+    else if (!(req.files && req.files.image)) { return res.status(200).json(reqallfeild) }
+    var imgname = makeid(5);
+    s3w.uploadFile (req.files.image.data,imgname,(results, err) => {
+      ADD_BETA_PRODUCT(body,results,(err, results) => {
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        else if (results[0].err_id == 1) {
+          refresh();
+          inssucess.msg = "Product added sucessfully"
+          return res.json(inssucess);
+        }
+        else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+        else if (results[0].err_id == -2) { insfailure.msg = "Product name already inserted"; return res.json(insfailure); }
+        else { resfailure.msg = results; return res.json(resfailure); }
+      });
+
     });
+   
   },
   getBetaProduct: (req, res) => {
     const body = req.body;
     if (!req.body.api_token) { reqallfeild }
-    if (!req.body.id) { reqallfeild }
+    if (!req.body.editid) { reqallfeild }
     GET_BETA_PRODUCT(body, (err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       else if (results[0].err_id == "-1") { return res.json(apierrmsg); }
@@ -201,18 +233,24 @@ module.exports = {
     if (!req.body.api_token) { return res.json(apierrmsg) }
     else if (!req.body.cateName) { return res.status(200).json(reqallfeild) }
     else if (!req.body.subName) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.orderBy) { return res.status(200).json(reqallfeild) }
-    ADD_BETA_SUBPRODUCT(body,(err, results) => {
-      if (err) { fatal_error.data = err; return res.json(fatal_error); }
-      else if (results[0].err_id == 1) {
-        refresh();
-        inssucess.msg = "Sub Product added sucessfully"
-        return res.json(inssucess);
-      }
-      else if (results[0].err_id == -1) { return res.json(apierrmsg); }
-      else if (results[0].err_id == -2) { insfailure.msg = "Sub Product already inserted"; return res.json(insfailure); }
-      else { resfailure.msg = results; return res.json(resfailure); }
+    else if (!(req.files && req.files.image)) { return res.status(200).json(reqallfeild) }
+    var imgname = makeid(5);
+    s3w.uploadFile (req.files.image.data,imgname,(results, err) => {
+     
+      ADD_BETA_SUBPRODUCT(body,results,(err, results) => {
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        else if (results[0].err_id == 1) {
+          refresh();
+          inssucess.msg = "Sub Product added sucessfully"
+          return res.json(inssucess);
+        }
+        else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+        else if (results[0].err_id == -2) { insfailure.msg = "Sub Product already inserted"; return res.json(insfailure); }
+        else { resfailure.msg = results; return res.json(resfailure); }
+      });
+
     });
+   
   },
   getBetaSubProduct: (req, res) => {
     const body = req.body;
@@ -255,10 +293,27 @@ module.exports = {
     if (!req.body.api_token) { return res.json(apierrmsg) }
     else if (!req.body.cateName) { return res.status(200).json(reqallfeild) }
     else if (!req.body.subName) { return res.status(200).json(reqallfeild) }
-    else if (!req.body.orderBy) { return res.status(200).json(reqallfeild) }
     else if (!req.body.editid) { return res.status(200).json(reqallfeild) }
-    
-    EDIT_BETA_SUBPRODUCT(body,(err, results) => {
+    else if (req.files && req.files.image) { 
+       var imgname = makeid(5);
+      s3w.uploadFile (req.files.image.data,imgname,(results, err) => {
+        console.log(results);
+        EDIT_BETA_SUBPRODUCT(body,results,(err, results) => {
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          else if (results[0].err_id == 1) {
+            refresh();
+            inssucess.msg = "Sub Product updated sucessfully"
+            return res.json(inssucess);
+          }
+          else if (results[0].err_id == -1) { return res.json(apierrmsg); }
+          else if (results[0].err_id == -2) { insfailure.msg = "Sub Product name already inserted"; return res.json(insfailure); }
+          else { resfailure.msg = results; return res.json(resfailure); }
+        });
+  
+      });
+     }
+   else{
+    EDIT_BETA_SUBPRODUCT(body,'',(err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       else if (results[0].err_id == 1) {
         refresh();
@@ -269,5 +324,203 @@ module.exports = {
       else if (results[0].err_id == -2) { insfailure.msg = "Sub Product name already inserted"; return res.json(insfailure); }
       else { resfailure.msg = results; return res.json(resfailure); }
     });
-  }
+   }
+   
+  },
+  dragAndDrop: (req, res) => {
+    const body = req.body;
+    let arryId = [];
+    let packarr = [];
+    if (!body.id) { return res.status(200).json(reqallfeild) }
+    let ArrayId = JSON.stringify(body.id);
+    console.log(ArrayId);
+    ArrayId = ArrayId.replace("[", "");
+    ArrayId = ArrayId.replace("]", "");
+    ArrayId = ArrayId.replace('"', "");
+    arryId = ArrayId.split(",");
+    let Oid1 = arryId[0];
+    packarr.push(Oid1);
+    let Oid2 = arryId[1];
+    packarr.push(Oid2);
+    let i = 0;
+    packarr.forEach(function (element, index) {
+
+      body.query = "select orderBy from new_category where id = '" + element + "'";
+      console.log(body.query);
+      COMMON(body, (err, results) => {
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        if (index == 0) {
+          body.query = "update new_category set orderBy = '" + results[0].orderBy + "' where id = '" + packarr[1] + "'";
+        }
+        if (index == 1) {
+          body.query = "update new_category set orderBy = '" + results[0].orderBy + "' where id = '" + packarr[0] + "'";
+        }
+        COMMON(body, (err, results) => {
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          if (results) {
+            if (index == 1) {
+              inssucess.msg = " Product interchanged sucessfully"
+              return res.json(inssucess);
+
+            }
+          }
+
+        });
+      });
+
+    });
+
+  },
+  dragAndDropSub: (req, res) => {
+    const body = req.body;
+    let arryId = [];
+    let packarr = [];
+    if (!body.subCateID) { return res.status(200).json(reqallfeild) }
+    let ArrayId = JSON.stringify(body.subCateID);
+    
+    ArrayId = ArrayId.replace("[", "");
+    ArrayId = ArrayId.replace("]", "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    arryId = ArrayId.split(",");
+    let Oid1 = arryId[0];
+    packarr.push(Oid1);
+    let Oid2 = arryId[1];
+    packarr.push(Oid2);
+    let i = 0;
+    packarr.forEach(function (element, index) {
+      body.query = "select orderBy from new_subcategory where id = '" + element + "'";
+      console.log(body.query);
+      COMMON(body, (err, results) => {
+        console.log(results[0]);
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        if (index == 0) {
+          body.query = "update new_subcategory set orderBy = '" + results[0].orderBy + "' where id = '" + packarr[1] + "'";
+        }
+        if (index == 1) {
+          body.query = "update new_subcategory set orderBy = '" + results[0].orderBy + "' where id = '" + packarr[0] + "'";
+        }
+        COMMON(body, (err, results) => {
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          if (results) {
+            if (index == 1) {
+              inssucess.msg = " Product interchanged sucessfully"
+              return res.json(inssucess);
+
+            }
+          }
+
+        });
+      });
+
+    });
+
+  },
+  dragAndDropPro: (req, res) => {
+    const body = req.body;
+    let arryId = [];
+    let packarr = [];
+    if (!body.subCateID) { return res.status(200).json(reqallfeild) }
+    let ArrayId = JSON.stringify(body.subCateID);
+    
+    ArrayId = ArrayId.replace("[", "");
+    ArrayId = ArrayId.replace("]", "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    arryId = ArrayId.split(",");
+    let Oid1 = arryId[0];
+    packarr.push(Oid1);
+    let Oid2 = arryId[1];
+    packarr.push(Oid2);
+    let i = 0;
+    packarr.forEach(function (element, index) {
+      body.query = "select orderBy from new_subcategory where id = '" + element + "'";
+      console.log(body.query);
+      COMMON(body, (err, results) => {
+        console.log(results[0]);
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        if (index == 0) {
+          body.query = "update new_subcategory set orderBy = '" + results[0].orderBy + "' where id = '" + packarr[1] + "'";
+        }
+        if (index == 1) {
+          body.query = "update new_subcategory set orderBy = '" + results[0].orderBy + "' where id = '" + packarr[0] + "'";
+        }
+        COMMON(body, (err, results) => {
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          if (results) {
+            if (index == 1) {
+              inssucess.msg = " Product interchanged sucessfully"
+              return res.json(inssucess);
+
+            }
+          }
+
+        });
+      });
+
+    });
+
+  },
+  getsubpro: (req, res) => {
+    const body = req.body;
+    if (!body.api_token) { return res.status(200).json(reqallfeild) }
+    if (!body.cateid) { return res.status(200).json(reqallfeild) }
+    GET_SUB_PRO(body,(err,results) =>{
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+     else if (results[0].err_id == '-1') { return res.json(apierrmsg); }
+      else { sucess.data = results; return res.json(sucess); }
+    });
+  },
+  dragAndDropProduct: (req, res) => {
+    const body = req.body;
+    let arryId = [];
+    let packarr = [];
+    if (!body.proID) { return res.status(200).json(reqallfeild) }
+    let ArrayId = JSON.stringify(body.proID);
+    console.log(ArrayId);
+    ArrayId = ArrayId.replace("[", "");
+    ArrayId = ArrayId.replace("]", "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    ArrayId = ArrayId.replace('"', "");
+    arryId = ArrayId.split(",");
+    let Oid1 = arryId[0];
+    packarr.push(Oid1);
+    let Oid2 = arryId[1];
+    packarr.push(Oid2);
+    let i = 0;
+    packarr.forEach(function (element, index) {
+
+      body.query = "select orderBy from new_product where id = '" + element + "'";
+      console.log(body.query);
+      COMMON(body, (err, results) => {
+        console.log(results[0]);
+        if (err) { fatal_error.data = err; return res.json(fatal_error); }
+        if (index == 0) {
+          body.query = "update new_product set orderBy = '" + results[0].orderBy + "' where id = '" + packarr[1] + "'";
+        }
+        if (index == 1) {
+          body.query = "update new_product set orderBy = '" + results[0].orderBy + "' where id = '" + packarr[0] + "'";
+        }
+        COMMON(body, (err, results) => {
+          if (err) { fatal_error.data = err; return res.json(fatal_error); }
+          if (results) {
+            if (index == 1) {
+              inssucess.msg = " Product interchanged sucessfully"
+              return res.json(inssucess);
+
+            }
+          }
+
+        });
+      });
+
+    });
+
+  },
 }

@@ -21,10 +21,10 @@ module.exports = {
     );
   },
   ADD_VOUCHER_CATEGORY: (body, callBack) => {
-    var query = "CALL Add_Voucher_Category(?,?,?,@a);";
+    var query = "CALL Add_Voucher_Category(?,?,?,?,@a);";
     pool.query(
       query,
-      [body.api_token, body.cateName, body.cateStatus],
+      [body.api_token, body.cateName, body.cateStatus,body.cateType],
       (error, results, fields) => {
 
         if (error) {
@@ -38,10 +38,10 @@ module.exports = {
     );
   },
   EDIT_VOUCHER_CATEGORY: (body, callBack) => {
-    var query = "CALL Edit_Voucher_Category(?,?,?,?,@a);";
+    var query = "CALL Edit_Voucher_Category(?,?,?,?,?,@a);";
     pool.query(
       query,
-      [body.id, body.api_token, body.cateName, body.cateStatus],
+      [body.id, body.api_token, body.cateName, body.cateStatus,body.cateType],
       (error, results, fields) => {
 
         if (error) {
@@ -107,6 +107,26 @@ module.exports = {
     pool.query(
       query,
       [Api_token, Voucatid],
+      (error, results, fields) => {
+
+        if (error) {
+          callBack(error);
+        }
+        else {
+          console.log(results);
+          return callBack(null, results[0]);
+        }
+      }
+    );
+  },
+
+  Category_View:(data,callBack) => {
+    var aapi_token = data.api_token;
+    var vtype = data.type;
+    var query = "CALL view_voucher_category_add(?,?,@p);";
+     pool.query(
+      query,
+      [aapi_token,vtype],
       (error, results, fields) => {
 
         if (error) {

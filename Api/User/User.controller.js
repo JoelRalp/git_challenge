@@ -1,5 +1,6 @@
 
 const sendSms = require("../Mqtt/twilio");
+const PushNotification = require("../Mqtt/push");
 var moment = require('moment-timezone');
 const { makeid, refresh } = require("../Mqtt/server");
 const{ Phone_login } = require("./User.service");
@@ -38,6 +39,8 @@ const{Level_Current}=require("./User.service");
 const{TierBenefits_View}=require("./User.service");
 const{Tier_View}=require("./User.service");
 const{Notification_View}=require("./User.service");
+const{FeedbackCategory_View}=require("./User.service");
+const{Topup_View}=require("./User.service");
 
 const { json } = require("body-parser");
 
@@ -838,6 +841,57 @@ module.exports = {
 				}
 			} else {
 				var data = {"status":"failure",'statuscode':'3',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	view_FeedbackCategory:(req,res)=>{
+		if(!req.body.api_token){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+		const body = req.body;
+		FeedbackCategory_View(body,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+
+				if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'Invalid api token'};
+				} else {
+					var data = {"status":"success",'statuscode':'1',"data":result};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'4',"data":'No data found'};
+			}
+			return res.status(200).json(data);
+		});
+	},
+
+	add_topup:(req,res)=>{
+		if(!req.body.api_token || !req.body.amount){
+			return res.status(200).json({status:"failure",statuscode:"2",data:"Required all field"})
+		}
+		const body = req.body;
+		var insertapi = makeid(80);
+		var CurrentDate  = moment().tz("Asia/Kuala_Lumpur").format("YYYY-MM-DD HH:mm:ss");
+		Topup_View(body,insertapi,CurrentDate,(err,result)=>{
+			if(err){
+				var data = {'status': "fatal_error",'statuscode': "500",'data': err};
+			}
+			else if(result.length > 0){
+
+				if(result[0].rescode=='3'){
+					var data = {"status":"failure",'statuscode':'3',"data":'Invalid amount'};
+				}else if(result[0].rescode=='4'){
+					var data = {"status":"failure",'statuscode':'4',"data":'Invalid api token'};
+				} else {
+					//PushNotification('cxfCg-uZRY2zcNNIh4kCT5:APA91bHKhb_e3EENEOQy2NgtAa4luR3eL7-ZTWlRWuxCKudRaeC0kxTbh4_phjsK-nykFKoeQSBqgQZSByDZHayU_2hst-Ws0gadJVJgPg77m0uCuNFwv4mM6rm7lRvTG6-M-bvkh3sw','hi','hi');
+					var data = {"status":"success",'statuscode':'1','msg':'Topup inserted successfully',"data":JSON.parse(result[0].rescode)};
+				}
+			} else {
+				var data = {"status":"failure",'statuscode':'5',"data":'No data found'};
 			}
 			return res.status(200).json(data);
 		});

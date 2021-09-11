@@ -15,15 +15,16 @@ module.exports = {
     );
   },
 
-  Point_Payment:(data,callBack) =>{
+  Point_Payment:(data,insertapi,callBack) =>{
   	var user_token = data.user_token;
   	var merchant_token =data.merchant_token;
   	var amount =data.amount;
+    var token = insertapi;
   	//console.log(user_token);
-  	var query = "CALL payment_point(?,?,?,@p)";
+  	var query = "CALL payment_point(?,?,?,?,@p)";
     pool.query(
       query,
-      [user_token,merchant_token,amount],
+      [user_token,merchant_token,amount,token],
       (error, results, fields) => {
         if (error) {
           callBack(error);
@@ -51,19 +52,21 @@ module.exports = {
 
   },
 
-  Voucher_Payment:(data,callBack)=>{
-    var qrcode = data.qrcode;
+  Voucher_Payment:(data,insertapi,CurrentDate,callBack)=>{
+    var vqrcode = data.qrcode;
     var merchantToken = data.merchantToken;
     var amount = data.amount;
-    var query = "CALL payment_voucher(?,?,?,@p)";
+    var token = insertapi;
+    var CurrentDate = CurrentDate;
+    var query = "CALL payment_voucher(?,?,?,?,?,@p)";
      pool.query(
       query,
-      [qrcode,merchantToken,amount],
+      [vqrcode,merchantToken,amount,token,CurrentDate],
       (error, results, fields) => {
         if (error) {
           callBack(error);
         }
-        //console.log(results[0]);
+        console.log(results[0]);
         return callBack(null, results[0]);
       }
     );
@@ -71,10 +74,10 @@ module.exports = {
 
   History_Payment:(body,callBack)=>{
     var merchant_token = body.api_token;
-    var query = "CALL paymenthistory(?,?,@p)";
+    var query = "CALL paymenthistory(?,?,?,@p)";
     pool.query(
       query,
-      [merchant_token,body.type],
+      [merchant_token,body.type,body.fkey],
       (error, results, fields) => {
         if (error) {
           callBack(error);
@@ -136,7 +139,7 @@ module.exports = {
     );
   },
 
-  Merchant_add:(data,insertapi,callBack)=>{
+  Merchant_add:(data,insertapi,uppass,callBack)=>{
 
     var aapi_token=data.api_token;
     var mname = data.name;
@@ -144,7 +147,7 @@ module.exports = {
     var mphone = data.phone;
     var mic = data.ic;
     var mstaffID = data.staffID;
-    var mpassword = data.password;
+    var mpassword = uppass;
     var mpin=data.pin;
     var moutlet=data.outlet;
     var mapi_token=insertapi;
@@ -313,10 +316,11 @@ module.exports = {
 
   EndReprot_day:(data,callBack)=>{
     var mapi_token=data.api_token;
-    var query = "CALL merchant_dayendreport(?,@p)";
+    var fkey=data.fkey;
+    var query = "CALL merchant_dayendreport(?,?,@p)";
      pool.query(
       query,
-      [mapi_token],
+      [mapi_token,fkey],
       (error, results, fields) => {
         if (error) {
           callBack(error);
@@ -358,7 +362,7 @@ module.exports = {
         if (error) {
           callBack(error);
         }
-        //console.log(results[0]);
+        console.log(results);
         return callBack(null, results[0]);
       }
     );
@@ -684,8 +688,8 @@ module.exports = {
      
     let Api_token = body.api_token;
      pool.query(
-       "CALL merchant_view_reservation(?,?,@a);",
-       [Api_token,body.type],
+       "CALL merchant_view_reservation(?,?,?,@a);",
+       [Api_token,body.type,body.fkey],
        (error, results, fields) => {
           
          if (error) {    
@@ -764,25 +768,74 @@ module.exports = {
     );
   },
   Cancel_Reservation:(body,callBack)=>{
-    var merchant_token = body.api_token;   
-    var query = "CALL Cancel_Merchant_Status(?,?,@p)";
+    var merchant_token = body.api_token;
+    var ccomment=body.comment;
+    var raction= body.action;  
+    var query = "CALL Cancel_Merchant_Status(?,?,?,?,@p)";
     pool.query(
       query,
-      [merchant_token,body.id],
+      [merchant_token,body.id,ccomment,raction],
       (error, results, fields) => {
         if (error) {
           callBack(error);
         }
-        //console.log(results[0]);
+        console.log(results[0]);
         return callBack(null, results[0]);
       }
     );
   },
   Cancel_Topup_Payment:(body,callBack)=>{
-    var query = "CALL Cancel_Topup_Payment(?,?,?,@p)";
+
+    var merchant_token = body.api_token;
+    var paymentid = body.paymentid;
+    var ccomment = body.comment;
+
+    var query = "CALL cancel_topup(?,?,?,@p)";
     pool.query(
       query,
-      [body.api_token,body.payid,body.comment],
+      [merchant_token,paymentid,ccomment],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  User_view:(data,callBack)=>{
+    var query = "SELECT id,name,phone,referral_code,api_token from users where phone_verified='1' and active='1'"
+    if (data.search_by) {
+      query=query + " " + "and (name like '%" + data.search_by + "%' or referral_code like '%" + data.search_by + "%' or phone like '%" + data.search_by + "%') " 
+    }
+    query = query + " " + "order by id ASC";
+    pool.query(
+      query,
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+  Reservation_Add:(data,insertapi,callBack)=>{
+    var uapi_token=data.api_token;
+    var routID=data.outID;
+    var rdate=data.date;
+    var rtime=data.time;
+    var rpax1=data.pax1;
+    var rname=data.name;
+    var rphone=data.phone;
+    var rdescription=data.description;
+    var rdescription=data.description;
+    var token=insertapi;
+    var query = "CALL add_merchant_reservation(?,?,?,?,?,?,?,?,?,@p)";
+    pool.query(
+      query,
+      [uapi_token,routID,rdate,rtime,rpax1,rname,rphone,rdescription,token],
       (error, results, fields) => {
         if (error) {
           callBack(error);
@@ -790,6 +843,21 @@ module.exports = {
         //console.log(results[0]);
         return callBack(null, results[0]);
       }
-    );
+    );  
+  },
+  Outlet_View:(data,callBack)=>{
+    var mapi_token=data.api_token;
+    var query = "CALL view_outlet_merchant(?,@p)";
+    pool.query(
+      query,
+      [mapi_token],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );  
   },
 }

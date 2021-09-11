@@ -51,7 +51,6 @@ module.exports = {
                 let img_key = 0;
                 imgbucket[0].forEach(element => {
                  
-                  console.log(img_key);
                   var imgname = makeid(5);
                   s3w.uploadFile(element.data, imgname, (results, err) => {
                     let query = "INSERT INTO newpost_image(pID ,gType ,pImage,piStatus ,created_at ,updated_at) VALUES ('" + key_id + "'," +
@@ -61,7 +60,7 @@ module.exports = {
                       if (err) { fatal_error.data = err; return res.json(fatal_error); }
                       img_key++;
                       if (img_key == img_tot) {
-                        console.log("in");
+                      
                         if (results) {
                           if (results.affectedRows == 1) { inssucess.msg = "Newsletter added sucessfully"; return res.json(inssucess); }
                         }
@@ -182,7 +181,7 @@ module.exports = {
     const body = req.body;
     if (!req.body.api_token) { return res.status(200).json(reqallfeild) }
     else if (!req.body.id) { return res.status(200).json(reqallfeild) }
-    else if (!req.files && !req.files.pImage) { return res.status(200).json(reqallfeild) }
+    else if (!req.files || !req.files.pImage) { return res.status(200).json(reqallfeild) }
     Verify_Employee(body, (err, results) => {
       if (err) { fatal_error.data = err; return res.json(fatal_error); }
       if (results) {

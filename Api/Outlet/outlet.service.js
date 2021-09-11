@@ -80,18 +80,13 @@ module.exports = {
        }
      );
    },
-   EDIT_OUTLET: (body,callBack) => {
-    if(body.img){
-      var value =  [body.id,body.api_token,body.outlet_name,body.phone,body.email,body.address,body.coordinates,body.work_hour,body.img,body.outStatus]
-    }
-    else{
-      var value =  [body.id,body.api_token,body.outlet_name,body.phone,body.email,body.address,body.coordinates,body.work_hour,body.img,body.outStatus] 
-    }
+   EDIT_OUTLET: (body,img,callBack) => {
+    
     var query = "CALL Edit_Outlet(?,?,?,?,?,?,?,?,?,?,@p);" ;
   
      pool.query(  
       query ,
-      value,  
+      [body.id,body.api_token,body.outlet_name,body.phone,body.email,body.address,body.coordinates,body.work_hour,img,body.outStatus], 
        (error, results, fields) => {
         
          if (error) {    

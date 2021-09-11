@@ -638,4 +638,38 @@ module.exports = {
     );
   },
 
+  FeedbackCategory_View:(data,callBack)=>{
+    var uapi_token=data.api_token;
+    var query = "CALL view_feedback_category_user(?,@p)";
+    pool.query(
+      query,
+      [uapi_token],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  Topup_View:(data,insertapi,CurrentDate,callBack)=>{
+      var uapi_token=data.api_token;
+      var tamount=data.amount;
+      var ttoken=insertapi;
+      var CurrentDate=CurrentDate;
+      var query = "CALL topup_user_online(?,?,?,?,@p)";
+      pool.query(
+      query,
+      [uapi_token,tamount,ttoken,CurrentDate],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        //console.log(results[0]);
+        return callBack(null, results[0]);
+      }
+    );
+  },
 }

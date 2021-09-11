@@ -22,7 +22,7 @@ module.exports = {
     let Api_token = body.api_token;
      pool.query(
        "CALL Add_Beta_Category(?,?,?,?,@a);",
-       [Api_token,body.name,images,body.orderBy],
+       [Api_token,body.name,images,body.alow_sub],
        (error, results, fields) => {
           
          if (error) {    
@@ -84,9 +84,10 @@ module.exports = {
    },
    EDIT_BETA_CATEGORY: (body,images,callBack) => {
     let Api_token = body.api_token;
+    console.log(body.editid);
      pool.query(
        "CALL Edit_Beta_Category(?,?,?,?,?,@a);",
-       [Api_token,body.name,images,body.orderBy,body.editid],
+       [Api_token,body.name,images,body.alow_sub,body.editId],
        (error, results, fields) => {
           
          if (error) {    
@@ -114,11 +115,11 @@ module.exports = {
        }
      );
    },
-   ADD_BETA_PRODUCT: (body,callBack) => {
+   ADD_BETA_PRODUCT: (body,img,callBack) => {
      let Api_token = body.api_token;
       pool.query(
-        "CALL Add_Beta_Product(?,?,?,?,?,?,?,?,?,@a);",
-        [Api_token,body.cateName,body.subcateName,body.productName,body.sku,body.cost,body.sellingPrice,body.type,body.status],
+        "CALL Add_Beta_Product(?,?,?,?,?,?,?,?,?,?,@a);",
+        [Api_token,body.cateName,body.subcateName,body.productName,body.sku,body.cost,body.sellingPrice,"raw",body.status,img],
         (error, results, fields) => {       
           if (error) {    
             callBack(error);
@@ -130,10 +131,11 @@ module.exports = {
       );
     },
    GET_BETA_PRODUCT: (body,callBack) => {
+     console.log(body.id);
      let Api_token = body.api_token;
       pool.query(
         "CALL Get_Beta_Product(?,?,@a);",
-        [body.id,Api_token],
+        [body.editid,Api_token],
         (error, results, fields) => {
            
           if (error) {    
@@ -209,11 +211,12 @@ module.exports = {
          }
        );
      },
-     ADD_BETA_SUBPRODUCT: (body,callBack) => {
+     ADD_BETA_SUBPRODUCT: (body,image,callBack) => {
+       console.log(image);
        let Api_token = body.api_token;
         pool.query(
           "CALL Add_Beta_Sub_Category(?,?,?,?,@a);",
-          [Api_token,body.cateName,body.subName,body.orderBy],
+          [Api_token,body.cateName,body.subName,image],
           (error, results, fields) => {       
             if (error) {    
               callBack(error);
@@ -272,11 +275,12 @@ module.exports = {
           }
         );
       },
-      EDIT_BETA_SUBPRODUCT: (body,callBack) => {
+      EDIT_BETA_SUBPRODUCT: (body,img,callBack) => {
        let Api_token = body.api_token;
+       console.log(img);
         pool.query(
-          "CALL Add_Beta_Sub_Category(?,?,?,?,@a);",
-          [Api_token,body.cateName,body.subName,body.orderBy,body.editid],
+          "CALL Edit_Beta_Sub_Category(?,?,?,?,?,@a);",
+          [Api_token,body.cateName,body.subName,body.editid,img],
           (error, results, fields) => {
              
             if (error) {    
@@ -287,5 +291,20 @@ module.exports = {
             }
           }
         );
-      }
+      },
+      GET_SUB_PRO: (body,callBack) => {
+        let Api_token = body.api_token;
+         pool.query(
+           "CALL Get_SubPro_Pro(?,?,@a);",
+           [Api_token,body.cateid],
+           (error, results, fields) => {         
+             if (error) {    
+               callBack(error);
+             }
+             else{
+               return callBack(null, results[0]);
+             }
+           }
+         );
+       }
 }

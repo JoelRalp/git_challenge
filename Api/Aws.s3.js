@@ -22,9 +22,26 @@ let path = "new";
          }
        });    
   }
-
+  function uploadImg(files,fname) {
+    const params = {
+        Bucket:'nodeapirepos/OutletImages', 
+        Key:fname + ".jpg", 
+        Body:files
+    };
+    s3.upload(params,(s3Err, data) => {
+        if (s3Err) {
+      return s3Err;
+        }
+        else {
+          path = data.Location;
+         
+          return path;
+        }
+      });    
+ }
 module.exports = {
-    uploadFile
+    uploadFile,
+    uploadImg
 }
 
 

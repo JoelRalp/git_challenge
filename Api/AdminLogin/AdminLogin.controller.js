@@ -1,8 +1,8 @@
 
 
-const{ GetAdmin } = require("../AdminLogin/AdminLogin.service");
+const{ GetAdmin,View_Admin,View_User_Admin } = require("../AdminLogin/AdminLogin.service");
 const { json } = require("body-parser");
-
+var { apierrmsg, sucess, fatal_error, reqallfeild, inssucess, insfailure, resfailure, nodatafound } = require("../common.service")
 module.exports = {
  
   Login_Employee: (req,res) => { 
@@ -51,39 +51,7 @@ module.exports = {
             });
         }
      
-     var passfromuser = JSON.stringify(body.password);
-     var passintable = JSON.stringify(body.password);
-    
      
-    //   if(passfromuser == passintable){
-    //     results.password = undefined;
-       
-    //     const jsontoken = sign({ result: results }, "qwe1234", {     
-    //     });
-    //     ADD_JS_TOKEN(jsontoken, (err, results) => {
-    //       if (err) {
-        
-    //         console.log(err);
-    //       }
-    //       else{
-    //         return res.json({
-    //           success: 1,
-    //           message: "login successfully",
-    //           data:{
-    //             AuthToken:jsontoken
-    //           } 
-    //         });
-    //       }
-
-    //     });
-      
-    //   }
-    //   else {
-    //     return res.json({
-    //       success: 0,
-    //       data: "Invalid email or password"
-    //     });
-    //   }
     });
   },
   Logout_Employee: (req, res) => { 
@@ -113,6 +81,42 @@ module.exports = {
       
     });
   },
-  
+  ViewAdmin: (req,res) => { 
+    
+    const body = req.body;
+    let values = [];
+    if (!req.body.api_token) { return res.json(apierrmsg) }
+    View_Admin(body, (err, results) => {
+
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else  {
+          values = results[0].err_id.split(",");
+         
+          let json = {
+
+            "product_count" :values[0],
+            "voucher_count" :values[1],
+            "outlet_count" :values[2],
+            "weborder_count" :values[3],
+          }
+             sucess.data = json; return res.json(sucess); 
+         
+      }
+    
+
+    });
+  },
+  ViewAdminUser: (req,res) => { 
+    
+    const body = req.body;
+    if (!req.body.api_token) { return res.json(apierrmsg) }
+    View_User_Admin(body, (err, results) => {
+
+      if (err) { fatal_error.data = err; return res.json(fatal_error); }
+      else if (results.length > 0) {sucess.data = results[0]; return res.json(sucess);}
+      else { return res.json(nodatafound); }
+
+    });
+  }
 
 };

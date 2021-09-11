@@ -1,5 +1,5 @@
 
-const {viewBetaCategory,addBetaCategory,getBetaCategory,changeBetaCategoryStatus,deleteBetaCategory,editBetaCategory,viewBetaProduct,addBetaProduct,getBetaProduct,changeBetaProductStatus,deleteBetaProduct,editBetaProduct,viewBetaSubProduct,addBetaSubProduct,getBetaSubProduct,changeBetaSubProductStatus,deleteBetaSubProduct,editBetaSubProduct} = require("./beta.controller");
+const {viewBetaCategory,dragAndDropProduct,getsubpro,addBetaCategory,dragAndDrop,getBetaCategory,changeBetaCategoryStatus,deleteBetaCategory,editBetaCategory,dragAndDropSub,viewBetaProduct,addBetaProduct,getBetaProduct,changeBetaProductStatus,deleteBetaProduct,editBetaProduct,viewBetaSubProduct,addBetaSubProduct,getBetaSubProduct,changeBetaSubProductStatus,deleteBetaSubProduct,editBetaSubProduct} = require("./beta.controller");
 
 const router = require("express").Router();
 
@@ -21,5 +21,9 @@ router.post("/AddBetaSubProduct",addBetaSubProduct);
 router.post("/GetBetaSubProduct",getBetaSubProduct);
 router.post("/ChangeBetaSubProductStatus",changeBetaSubProductStatus);
 router.post("/DeleteBetaSubProduct",deleteBetaSubProduct);
-router.post("/EditBetaSubProduct",editBetaSubProduct);
+router.post("/EditBetaSubcategory",editBetaSubProduct);
+router.post("/dragAndDrop",dragAndDrop);
+router.post("/dragAndDropSub",dragAndDropSub);
+router.post("/getsubpro",getsubpro);
+router.post("/dragAndDropProduct",dragAndDropProduct);
 module.exports = router;

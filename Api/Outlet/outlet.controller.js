@@ -203,16 +203,12 @@ module.exports = {
     else if (!req.body.work_hour) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.coordinates) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
     else if (!req.body.outStatus) { return res.status(200).json({ status: "failure", statuscode: "3", msg: "Required All Field" }) }
-
-    var imgname = makeid(5);
-    
-    if(req.files){
-
+    else if (req.files && req.files.out_image){
+      var imgname = makeid(5);
       s3w.uploadFile (req.files.out_image.data,imgname,(results, err) => {
         if (results) {
-        let img = results;
-        body.img = img;
-          EDIT_OUTLET(body,(err, results) => {
+       
+          EDIT_OUTLET(body,results,(err, results) => {
 
             if (err) {
       
@@ -254,9 +250,11 @@ module.exports = {
           throw err;
         }
       });
+
     }
+  
     else{
-      EDIT_OUTLET(body,(err, results) => {
+      EDIT_OUTLET(body,"",(err, results) => {
 
         if (err) {
   

@@ -65,9 +65,12 @@ const SupportRouter  = require("./Api/Support/support.router")
 const Newsletter  = require("./Api/Newsletter/newsletter.router")
 const Settings  = require("./Api/Settings/settings.router")
 const UserRouter = require("./Api/User/User.router");
-
-
- 
+const NotificationRouter = require("./Api/Notification/Notification.router");
+const GalleryRouter  = require("./Api/Gallery/Gallery.router");
+const AdminRouter  = require("./Api/Admin/Admin.router");
+app.use("/api/admin",AdminRouter);
+app.use("/api/gallery",GalleryRouter);
+app.use("/api/notification",NotificationRouter);
  app.use("/api/adminlogin",AdminLoginRouter);
  app.use("/api/category",CategoryRouter);
  app.use("/api/product",ProductRouter);
